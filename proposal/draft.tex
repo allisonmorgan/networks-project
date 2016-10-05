@@ -1,0 +1,60 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{cite,amsmath,amsthm,amssymb,bbm}
+
+\newcommand{\marg}[1]{\normalsize{{\footnote{{#1}}}}{\marginpar[\hfill\tiny\thefootnote$\rightarrow$]{{$\leftarrow$\tiny\thefootnote}}}}
+
+\title{Modelling information diffusion in faculty hiring networks}
+\author{
+  Dimitrios Economou and Allison Morgan \\
+  CSCI 5352 - Project Proposal
+}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Proposal}\label{proposal}
+Recent research suggests that within the faculty hiring network there is a core-periphery structure, with prestigious universities occupying central (or core) positions and less prestigious universities living in the periphery~\cite{clauset:hiring}. This strong assortative mixing implies that information originating at the core could more easily spread than that originating from the periphery~\cite{clauset:hiring}. Similarly, from an epidemiological perspective, the location of an infected individual within a core-periphery structure can determine the magnitude of an outbreak~\cite{newman:networks}. As such, we propose to run simulations of information flow in the faculty hiring network using models from sociology and epidemiology.
+
+The models we primarily intend to explore are the standard epidemiological
+models SI, SIR, SIS, and SIRS~\cite{newman:networks}. These models represent the
+transmission of infection - from those susceptible to (S), infected by (I), and
+recovered from being infected (R). For example, within the faculty hiring
+network, universities can be infected by the research interests of their faculty
+members. Universities may recover from this infection if they decide to no
+longer participate in this research (perhaps faculty doing work in this field
+retire or leave). We would also like to explore a few sociological models of
+idea diffusion like SEIZ~\cite{bettencourt:ideaspread}, independent cascade
+(IC), and linear threshold (LT)~\cite{gaussier:infodiffusion,infodiffusionstanford}. A general survey of epidemic models can be found here~\cite{epidemicsurvey}.
+
+In our simulation, we will assign each vertex in the faculty hiring network a
+state: susceptible, infected, recovered, etc. We initially choose a vertex to
+infect and let all the other vertices be susceptible. Let $S$, $I$, and $R$ be
+the number of susceptible, infected, and recovered vertices, respectively. The \emph{classic epidemic model} of SIR says that the dynamics of these quantities is given by:
+    \begin{align*}
+        dS/dt &= -\beta IS/N,\\
+        dI/dt &= \beta IS/N - \gamma I,\\
+        dR/dt &= \gamma I,\\
+        N &= S + I + R,
+    \end{align*}
+where $\beta$ is the contact rate, $\gamma$ is the recovery rate, and $N$ is the
+(constant) size of the population~\cite{newman:networks,hethcote}. For example,
+we may consider $\beta$ to be some function of the number of infected neighbors
+a vertex has and $\gamma$ to be some function inversely proportional to the
+prestige of the initially infected university. Using these equations, we'll be
+able to observe how the initial position and prestige of the vertex determines how infectious (e.g., the number of infected individuals or time it takes to infect the whole network) an idea can be.
+
+
+\section{Data Description}\label{proposal}
+The faculty hiring network is represented by a collection of records, each of
+which corresponds to a unique faculty member. The records have the following
+fields: faculty member name, sex, department, place (university), and current position (such as assistant
+professor), as well as their education and employment history (degree, place,
+field, and years active).
+
+
+\bibliography{draft}
+\bibliographystyle{abbrv}
+
+\end{document}
