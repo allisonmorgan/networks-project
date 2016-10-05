@@ -47,11 +47,8 @@ able to observe how the initial position and prestige of the vertex determines h
 
 
 \section{Data Description}\label{proposal}
-The faculty hiring network is represented by a collection of records, each of
-which corresponds to a unique faculty member. The records have the following
-fields: faculty member name, sex, department, place (university), and current position (such as assistant
-professor), as well as their education and employment history (degree, place,
-field, and years active).
+
+We have a collection of records for each unique faculty member which have the following fields: name, sex, current department, university, and position, as well as their education and employment history (degree, place, field, and years active). Faculty hiring networks have been constructed using this data for computer science, business and history departments. For each discipline, there is a list of directed edges $(u,v)$, each of which describes a person with a PhD from institution $u$ and who was faculty at institution $v$. Vertices also have university attributes such as prestige scores, geographic region, and name~\cite{clauset:hiring}
 
 
 \bibliography{draft}
