@@ -85,7 +85,7 @@ class SIR(SI):
                 self.infected.remove(u)
                 self.recovered.add(u)
 
-    def step(self, __recovery_policy):
+    def step(self):
         self.__recover_step()
         super(SIS, self).step()
 
