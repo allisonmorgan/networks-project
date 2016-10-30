@@ -33,7 +33,7 @@ class SI(object):
             print("No susceptible nodes to infect.")
 
     def infect_node(self, node):
-        """Infect a node if it is susceptible. Assumed to take time.
+        """Infect a node if it is susceptible.
 
         """
         try:
@@ -87,7 +87,7 @@ class SIR(SI):
 
     def step(self):
         self.__recover_step()
-        super(SIS, self).step()
+        super(SIR, self).step()
 
 
 class SIS(SI):
