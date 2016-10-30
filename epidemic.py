@@ -6,7 +6,7 @@ def flip(p):
     return True if random.random() <= p else False
 
 
-class SI:
+class SI(object):
     """An SI epidemic model.
 
     Parameters
@@ -16,97 +16,91 @@ class SI:
     p : transmission probability
 
     """
-    def __init__(self, graph, p=0.5):
+    def __init__(self, graph, p=0.5, random_start=True):
         self.p = p
         self.graph = graph
         self.susceptible = set(nx.nodes(graph))
         self.infected = set()
         self.time = 0
+        self.visited_edges = set()
         self.is_complete = False
-        self.visited = set()
 
-    def __step(self):
-        is_complete = True
+    def infect_random_node(self):
+        try:
+            random_node = random.choice(list(self.susceptible))
+            self.infect_node(random_node)
+        except:
+            print("No susceptible nodes to infect.")
+
+    def infect_node(self, node):
+        """Infect a node if it is susceptible. Assumed to take time.
+
+        """
+        try:
+            self.susceptible.remove(node)
+            self.infected.add(node)
+            self.is_complete = False
+        except:
+            print("Node {} is not susceptible.".format(node))
+
+    def __infect_step(self):
+        # The epidemic is complete if time passed,
+        # but the infection didn't spread.
+        self.is_complete = True
         for u in self.infected.copy():
             nbrs = [v for v in self.graph.neighbors(u)
-                    if v in self.susceptible and (u, v) not in self.visited]
+                    if v in self.susceptible
+                    and (u, v) not in self.visited_edges]
             for v in nbrs:
                 if flip(self.p):
-                    self.susceptible.remove(v)
-                    self.infected.add(v)
-                    is_complete = False
+                    self.infect_node(v)
                 else:
-                    self.visited.add((u, v))
-        self.is_complete = is_complete
+                    self.visited_edges.add((u, v))
+
+    def step(self):
         if not self.is_complete:
-            self.time += 1
+            self.__infect_step()
 
     def simulate(self):
-        self.time += 1
-        random_node = random.choice(self.graph.nodes())
-        self.susceptible.remove(random_node)
-        self.infected.add(random_node)
         while not self.is_complete:
-            self.__step()
-
-    def size(self):
-        return len(self.infected)
-
-
-class SIR:
-    """An SIR epidemic model.
-
-    Parameters
-    ----------
-    graph : the network the epidemic will run on
-
-    p : transmission probability
-    r : recovery probability
-
-    """
-    def __init__(self, graph, p=0.5):
-        self.p = p
-        self.graph = graph
-        self.susceptible = set(nx.nodes(graph))
-        self.infected = set()
-        self.recovered = set()
-        self.time = 0
-        self.is_complete = False
-        self.visited = set()
-
-    def __step(self):
-        is_complete = True
-        # Consider allowing infected nodes to recover
-        for u in self.infected.copy():
-            if flip(self.r):
-                self.infected.remove(u)
-                self.recovered.add(v)
-        # Consider spreading the infection to the neighbors of all infected nodes
-        for u in self.infected.copy():
-            nbrs = [v for v in self.graph.neighbors(u)
-                    if v in self.susceptible and (u, v) not in self.visited]
-            for v in nbrs:
-                if flip(self.p):
-                    self.susceptible.remove(v)
-                    self.infected.add(v)
-                    is_complete = False
-                else:
-                    self.visited.add((u, v))
-        self.is_complete = is_complete
-        if not self.is_complete:
+            self.step()
             self.time += 1
-
-    def simulate(self):
-        self.time += 1
-        random_node = random.choice(self.graph.nodes())
-        self.susceptible.remove(random_node)
-        self.infected.add(random_node)
-        while not self.is_complete:
-            self.__step()
 
     def size(self):
         return len(self.infected)
 
     def length(self):
-        return len(self.time)
+        return self.time
 
+
+class SIR(SI):
+    def __init__(self, graph, p=0.2, r=0.8):
+        super(SIR, self).__init__(graph, p)
+        self.r = r
+        self.recovered = set()
+
+    def __recover_step(self):
+        for u in self.infected.copy():
+            if flip(self.r):
+                self.infected.remove(u)
+                self.recovered.add(u)
+
+    def step(self, __recovery_policy):
+        self.__recover_step()
+        super(SIS, self).step()
+
+
+class SIS(SI):
+    def __init__(self, graph, p=0.2, r=0.8):
+        super(SIS, self).__init__(graph, p)
+        self.r = r
+
+    def __recover_step(self):
+        for u in self.infected.copy():
+            if flip(self.r):
+                self.infected.remove(u)
+                self.susceptible.add(u)
+
+    def step(self):
+        self.__recover_step()
+        super(SIS, self).step()
