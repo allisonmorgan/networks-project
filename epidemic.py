@@ -2,8 +2,16 @@ import networkx as nx
 import random
 
 
+# TODO: should move these utility functions somewhere else
 def flip(p):
     return True if random.random() <= p else False
+
+
+def filter_from(edges, from_node):
+    """Remove edges (from `edges`) that start at `from_node`
+
+    """
+    return set([edge for edge in edges if edge[0] != from_node])
 
 
 class SI(object):
@@ -66,9 +74,11 @@ class SI(object):
             self.step()
             self.time += 1
 
+    @property
     def size(self):
         return len(self.infected)
 
+    @property
     def length(self):
         return self.time
 
@@ -100,6 +110,8 @@ class SIS(SI):
             if flip(self.r):
                 self.infected.remove(u)
                 self.susceptible.add(u)
+                # TODO: Should the following be uncommented?
+                # self.visited_edges = filter_from(self.visited_edges, u)
 
     def step(self):
         self.__recover_step()
