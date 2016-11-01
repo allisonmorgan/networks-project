@@ -76,7 +76,7 @@ class SI(object):
 
     @property
     def size(self):
-        return len(self.infected)
+        return len(self.infected)/float(self.g.number_of_nodes())
 
     @property
     def length(self):
