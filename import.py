@@ -38,5 +38,5 @@ for edge in edgelist:
 # Create an empty directed graph and add all edges
 # TODO: This collapses all edges into a single edge.
 # Do we want to add edge weight here?
-g = networkx.DiGraph()
+g = networkx.MultiDiGraph()
 g.add_edges_from(edges)
