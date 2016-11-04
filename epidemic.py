@@ -49,21 +49,22 @@ class SI(object):
             self.infected.add(node)
             self.is_complete = False
         except:
-            print("Node {} is not susceptible.".format(node))
+            pass
+            #print("Node {} is not susceptible.".format(node))
 
     def __infect_step(self):
         # The epidemic is complete if time passed,
         # but the infection didn't spread.
         self.is_complete = True
         for u in self.infected.copy():
-            nbrs = [v for v in self.graph.neighbors(u)
-                    if v in self.susceptible
-                    and (u, v) not in self.visited_edges]
-            for v in nbrs:
+            edges_to_try = [e for e in self.graph.edges(u)
+                            if e[1] in self.susceptible
+                            and e not in self.visited_edges]
+            for e in edges_to_try:
                 if flip(self.p):
-                    self.infect_node(v)
+                    self.infect_node(e[1])
                 else:
-                    self.visited_edges.add((u, v))
+                    self.visited_edges.add(e)
 
     def step(self):
         if not self.is_complete:
