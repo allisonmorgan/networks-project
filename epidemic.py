@@ -61,10 +61,9 @@ class SI(object):
                             if e[1] in self.susceptible
                             and e not in self.visited_edges]
             for e in edges_to_try:
+                self.visited_edges.add(e)
                 if flip(self.p):
                     self.infect_node(e[1])
-                else:
-                    self.visited_edges.add(e)
 
     def step(self):
         if not self.is_complete:
