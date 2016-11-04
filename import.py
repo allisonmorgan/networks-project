@@ -1,5 +1,8 @@
 import networkx
 import numpy as np
+import json
+
+from networkx.readwrite import json_graph
 
 # Import vertex attributes
 with open("data/CS_vertexlist.txt") as f:
@@ -40,3 +43,10 @@ for edge in edgelist:
 # Do we want to add edge weight here?
 g = networkx.MultiDiGraph()
 g.add_edges_from(edges)
+
+# Encode this data to JSON
+data = json_graph.node_link_data(g)
+
+# Write out json
+with open('university.json', 'w') as outfile:
+    json.dump(data, outfile, indent = 1, sort_keys = True)
