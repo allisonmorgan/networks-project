@@ -8,6 +8,7 @@ with open("data/CS_vertexlist.txt") as f:
 # Create a map of node number to attributes
 rows = [line.strip().split('\t') for i, line in enumerate(lines) if i > 0]
 school_metadata = {}
+vertex_names = {}
 for row in rows:
     pi, USN2010, NRC95, region, institution = float(row[1]), row[2], row[3], row[4].strip(), row[5]
     try:
@@ -20,6 +21,7 @@ for row in rows:
     except:
         NRC95 = np.nan
 
+    vertex_names[row[5]] = int(row[0])
     attributes = {"pi": pi, "USN2010": USN2010, "NRC95": NRC95, "region": region, "institution": institution}
     school_metadata[int(row[0])] = attributes
 
@@ -33,6 +35,8 @@ edges = []
 for edge in edgelist:
     # TODO: Doesn't store information on edge attributes.
     # Do we want this information (gender, rank)?
+    if int(edge[0]) == 206 or int(edge[1]) == 206:
+        continue
     edges.append((int(edge[0]), int(edge[1])))
 
 # Create an empty directed graph and add all edges
