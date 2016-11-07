@@ -1,44 +1,69 @@
 from collections import defaultdict
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import networkx as nx
 import numpy as np
 
 from epidemic import SI, SIR, SIS
-from network import bi_planted_partition
 from importfaculty import faculty_graph, school_metadata
 
 
 def main():
+    print("nodes: ", len(faculty_graph.nodes()))
+
     n_trials = 50
     results_length = []
     results_size = []
-    p = 0.5
-    for node in faculty_graph.nodes():
-        print(node / float(faculty_graph.number_of_nodes()))
-        trials_length = []
-        trials_size = []
-        for i in range(n_trials):
-            epi = SI(faculty_graph.copy(), p=p)
-            epi.infect_node(node)
-            epi.simulate()
-            trials_length.append(epi.length)
-            trials_size.append(epi.size)
-        results_length.append((school_metadata[node]["pi"], np.average(trials_length)))
-        results_size.append((school_metadata[node]["pi"], np.average(trials_size)))
+    ps = np.linspace(0, 0.5, 5)
+    for p in ps:
+        results_length_i = []
+        results_size_i = []
+        print("prob: ", p)
 
+        for node in faculty_graph.nodes():
+            print("node %: ", node / float(faculty_graph.number_of_nodes()))
+            trials_length = []
+            trials_size = []
+            for i in range(n_trials):
+                epi = SI(faculty_graph.copy(), p=p)
+                epi.infect_node(node)
+                epi.simulate()
+                trials_length.append(epi.length)
+                trials_size.append(epi.size)
+
+            results_length_i.append((school_metadata[node]["pi"], np.average(trials_length)))
+            results_size_i.append((school_metadata[node]["pi"], np.average(trials_size)))
+
+        results_length.append(results_length_i)
+        results_size.append(results_size_i)
+
+    colors = iter(cm.rainbow(np.linspace(0, 1, len(results_length))))
     fig = plt.figure()
     ax = plt.gca()
-    ax.scatter(*zip(*results_length))
-    plt.xlabel('University prestige (pi)')
-    plt.ylabel('Epidemic length')
-    plt.savefig('results/length-{}-trials-{}-p.png'.format(n_trials, p))
+    for i, data in enumerate(results_length):
+        ax.scatter(*zip(*data), color = next(colors), label = 'p={0}'.format(ps[i]))
+    
+    plt.xlabel('University Prestige (pi)')
+    plt.ylabel('Epidemic Length')
+    plt.legend(loc=2)
+    plt.ylim(0, 10)
+
+    giant = max(nx.connected_component_subgraphs(faculty_graph.to_undirected()), key=len)
+    plt.axhline(y=nx.diameter(giant), linewidth=1, color='black')
+    plt.savefig('results/length-{}-trials.png'.format(n_trials))
     plt.clf()
 
+    colors = iter(cm.rainbow(np.linspace(0, 1, len(results_length))))
     fig = plt.figure()
     ax = plt.gca()
-    ax.scatter(*zip(*results_size))
-    plt.xlabel('University prestige (pi)')
-    plt.ylabel('Epidemic size')
-    plt.savefig('results/size-{}-trials-{}-p.png'.format(n_trials, p))
+    for i, data in enumerate(results_size):
+        ax.scatter(*zip(*data), color = next(colors), label = 'p={0}'.format(ps[i]))
+
+    plt.xlabel('University Prestige (pi)')
+    plt.ylabel('Epidemic Size')
+    plt.legend(loc=2)
+    plt.ylim(0, 1)
+    plt.savefig('results/size-{}-trials.png'.format(n_trials))
     
     # Start of incremental averaging (haven't throughly checked if correct).
     #trial_number = 1
