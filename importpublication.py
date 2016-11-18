@@ -37,3 +37,22 @@ plt.ylabel('Median H-Index')
 plt.savefig("results/h-index_v_rank.png")
 plt.clf()
 """
+
+"""
+centrality = nx.closeness_centrality(faculty_graph)
+
+fig = plt.figure()
+ax = plt.gca()
+
+x = []; y = []
+for (vertex, c) in centrality.items():
+    x.append(school_metadata[vertex]['pi'])
+    y.append(c)
+
+ax.scatter(x, y)
+    
+plt.xlabel('University Prestige (pi)')
+plt.ylabel('Closeness Centrality')
+plt.savefig("results/centrality_v_rank.png")
+plt.clf()
+"""

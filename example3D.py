@@ -29,10 +29,10 @@ def main():
                 samples_l.append(epi.length)
                 samples_s.append(epi.size)
 
-                results_r.append(r)
-                results_p.append(p)
-                results_s.append(np.average(samples_l))
-                results_l.append(np.average(samples_s))
+            results_r.append(r)
+            results_p.append(p)
+            results_s.append(np.average(samples_s))
+            results_l.append(np.average(samples_l))
 
     fig = plt.figure()
     ax = fig.gca(projection='3d')
