@@ -13,11 +13,9 @@ def main():
   for i, row in enumerate(adj):
     scaled = []
     for j, cell in enumerate(row[0]):
-      #print j
       scaled.append(cell/float(faculty_graph.in_degree(j+1)))
     
     adj[i] = scaled
-    #print (i, adj[i])
 
   plt.matshow(adj, cmap=plt.cm.Blues)
   plt.show()

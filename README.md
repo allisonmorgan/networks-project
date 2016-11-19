@@ -3,4 +3,4 @@ Epidemic processes in faculty hiring networks
 
 ### Contents
 
- - epidemiological/epidemic : the epidemic models
+ - epidemic : the epidemic models
