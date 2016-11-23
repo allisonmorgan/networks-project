@@ -3,8 +3,11 @@ import random
 
 
 # TODO: should move these utility functions somewhere else
-def flip(p):
-    return True if random.random() <= p else False
+def flip(p, weight=None):
+    if not weight:
+        return True if random.random() <= p else False
+    else:
+        return True if float(random.random()) <= p*float(weight) else False
 
 
 def filter_from(edges, from_node):
@@ -61,8 +64,12 @@ class SI(object):
                             if e[1] in self.susceptible
                             and e not in self.visited_edges]
             for e in edges_to_try:
+                weight = None
+                attributes = self.graph.get_edge_data(e[0], e[1])
+                if attributes.has_key('weight'):
+                    weight = attributes['weight']
                 self.visited_edges.add(e)
-                if flip(self.p):
+                if flip(self.p, weight):
                     self.infect_node(e[1])
 
     def step(self):

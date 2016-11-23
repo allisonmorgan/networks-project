@@ -39,7 +39,24 @@ for edge in edgelist:
         continue
     edges.append((int(edge[0]), int(edge[1])))
 
-# Create an empty directed graph and add all edges
-# TODO: Do we want to add edge weight here?
+# Create an empty directed, multi-edge graph and add all edges
 faculty_graph = networkx.MultiDiGraph()
 faculty_graph.add_edges_from(edges)
+
+# Create an empty directed, weighted graph
+faculty_graph_weighted = networkx.DiGraph()
+# Draw an edge from every node to every other node with equal 
+# weight. Allow self-loops
+for u in faculty_graph.nodes():
+    for v in faculty_graph.nodes():
+        if not faculty_graph_weighted.has_edge(u, v):
+            faculty_graph_weighted.add_edge(u, v, {'weight': 1})
+
+# Increment the weight by the number of edges that exist
+for u, v in faculty_graph.edges_iter():
+    faculty_graph_weighted[u][v]['weight'] += 1
+
+# Scale by the maximum number of edges?
+#for u, v in faculty_graph_weighted.edges_iter():
+#    faculty_graph_weighted[u][v]['weight'] = float(faculty_graph_weighted[u][v]['weight']) / float(len(edges))
+
