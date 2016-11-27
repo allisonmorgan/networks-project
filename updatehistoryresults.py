@@ -23,7 +23,7 @@ def run_trials(si_trials=2, sir_trials=2, sis_trials=2):
     #    results["length"][p] = defaultdict(list)
     results = pickle.load(open("cache/HIS_SI.p", "rb"))
     for trial in xrange(si_trials):
-        print(trial)
+        print("Trial progress: {}".format(trial / float(si_trials)))
         for p in ps:
             print(p)
             for node in school_metadata.keys():
@@ -42,11 +42,11 @@ def run_trials(si_trials=2, sir_trials=2, sis_trials=2):
     #    results["length"][p, r] = defaultdict(list)
     results = pickle.load(open("cache/HIS_SIR.p", "rb"))
     for trial in xrange(sir_trials):
-        print(trial)
+        print("Trial progress: {}".format(trial / float(sir_trials)))
         for p, r in product(ps, rs):
             print((p,r))
             for node in school_metadata.keys():
-                epi = SIR(faculty_graph.copy(), p=p)
+                epi = SIR(faculty_graph.copy(), p=p, r=r)
                 epi.infect_node(node)
                 epi.simulate()
                 results["size"][p, r][node].append(epi.size)
@@ -61,11 +61,11 @@ def run_trials(si_trials=2, sir_trials=2, sis_trials=2):
     #    results["length"][p, r] = defaultdict(list)
     results = pickle.load(open("cache/HIS_SIS.p", "rb"))
     for trial in xrange(sis_trials):
-        print(trial)
+        print("Trial progress: {}".format(trial / float(sis_trials)))
         for p, r in product(ps, rs):
             print((p,r))
             for node in school_metadata.keys():
-                epi = SIS(faculty_graph.copy(), p=p)
+                epi = SIS(faculty_graph.copy(), p=p, r=r)
                 epi.infect_node(node)
                 epi.simulate()
                 results["size"][p, r][node].append(epi.size)
@@ -77,7 +77,7 @@ def run_trials(si_trials=2, sir_trials=2, sis_trials=2):
 
 def main():
     # set number of for each trials here (0 or more)
-    run_trials(si_trials=500, sir_trials=10, sis_trials=10)
+    run_trials(si_trials=1, sir_trials=1, sis_trials=1)
 
 
 if __name__ == "__main__":
