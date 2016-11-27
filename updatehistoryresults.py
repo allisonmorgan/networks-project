@@ -22,9 +22,10 @@ def run_trials(si_trials=2, sir_trials=2, sis_trials=2):
     #    results["size"][p] = defaultdict(list)
     #    results["length"][p] = defaultdict(list)
     results = pickle.load(open("cache/HIS_SI.p", "rb"))
-    for p in ps:
-        print(p)
-        for trial in xrange(si_trials):
+    for trial in xrange(si_trials):
+        print(trial)
+        for p in ps:
+            print(p)
             for node in school_metadata.keys():
                 epi = SI(faculty_graph.copy(), p=p)
                 epi.infect_node(node)
@@ -40,9 +41,10 @@ def run_trials(si_trials=2, sir_trials=2, sis_trials=2):
     #    results["size"][p, r] = defaultdict(list)
     #    results["length"][p, r] = defaultdict(list)
     results = pickle.load(open("cache/HIS_SIR.p", "rb"))
-    for p, r in product(ps, rs):
-        print((p,r))
-        for trial in xrange(sir_trials):
+    for trial in xrange(sir_trials):
+        print(trial)
+        for p, r in product(ps, rs):
+            print((p,r))
             for node in school_metadata.keys():
                 epi = SIR(faculty_graph.copy(), p=p)
                 epi.infect_node(node)
@@ -58,9 +60,10 @@ def run_trials(si_trials=2, sir_trials=2, sis_trials=2):
     #    results["size"][p, r] = defaultdict(list)
     #    results["length"][p, r] = defaultdict(list)
     results = pickle.load(open("cache/HIS_SIS.p", "rb"))
-    for p, r in product(ps, rs):
-        print((p,r))
-        for trial in xrange(sis_trials):
+    for trial in xrange(sis_trials):
+        print(trial)
+        for p, r in product(ps, rs):
+            print((p,r))
             for node in school_metadata.keys():
                 epi = SIS(faculty_graph.copy(), p=p)
                 epi.infect_node(node)
@@ -74,7 +77,7 @@ def run_trials(si_trials=2, sir_trials=2, sis_trials=2):
 
 def main():
     # set number of for each trials here (0 or more)
-    run_trials(si_trials=1, sir_trials=1, sis_trials=1)
+    run_trials(si_trials=500, sir_trials=10, sis_trials=10)
 
 
 if __name__ == "__main__":
