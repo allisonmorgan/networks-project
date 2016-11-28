@@ -42,3 +42,13 @@ for edge in edgelist:
 # Multi-edge, directed graph
 faculty_graph = networkx.MultiDiGraph()
 faculty_graph.add_edges_from(edges)
+
+# Multi-edge, directed, weighted graph
+faculty_graph_weighted = networkx.MultiDiGraph()
+for u in faculty_graph.nodes():
+    for v in faculty_graph.nodes():
+        if not faculty_graph.has_edge(u, v):
+            faculty_graph_weighted.add_edge(u, v, weight = 0.1)
+        else:
+            faculty_graph_weighted.add_edge(u, v, weight = 1.0)
+
