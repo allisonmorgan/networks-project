@@ -2,7 +2,7 @@ import networkx
 import numpy as np
 
 # Import vertex attributes
-with open("data/CS_vertexlist.txt") as f:
+with open("data/BUSI_vertexlist.txt") as f:
     lines = f.readlines()
 
 # Create a map of node number to attributes
@@ -26,7 +26,7 @@ for row in rows:
     school_metadata[int(row[0])] = attributes
 
 # Import edge list
-with open("data/CS_edgelist.txt") as f:
+with open("data/BUSI_edgelist.txt") as f:
     lines = f.readlines()
 
 # Create list of edges
@@ -35,7 +35,7 @@ edges = []
 for edge in edgelist:
     # TODO: Doesn't store information on edge attributes.
     # Do we want this information (gender, rank)?
-    if int(edge[0]) == 206 or int(edge[1]) == 206:
+    if int(edge[0]) == 145 or int(edge[1]) == 145:
         continue
     edges.append((int(edge[0]), int(edge[1])))
 

@@ -8,14 +8,15 @@ import numpy as np
 import networkx as nx
 
 from epidemic import SI, SIR, SIS
-from importhistory import faculty_graph, school_metadata
+from importcompsci import faculty_graph, school_metadata
 
 
 def run_trials(si_trials=2, sir_trials=2, sis_trials=2):
     ps = np.linspace(0, 1, 11, endpoint=False)
     rs = np.linspace(0, 1, 5, endpoint=False)
 
-    results = pickle.load(open("cache/HIS_SI.p", "rb"))
+
+    results = pickle.load(open("cache/CS_SI.p", "rb"))
     for trial in xrange(si_trials):
         print("Trial progress: {}".format(trial / float(si_trials)))
         for p in ps:
@@ -26,11 +27,11 @@ def run_trials(si_trials=2, sir_trials=2, sis_trials=2):
                 epi.simulate()
                 results["size"][p][node].append(epi.size)
                 results["length"][p][node].append(epi.length)
-    pickle.dump(results, open("cache/HIS_SI.p", 'wb'))
+    pickle.dump(results, open("cache/CS_SI.p", 'wb'))
     results.clear()
     print("SI done")
 
-    results = pickle.load(open("cache/HIS_SIR.p", "rb"))
+    results = pickle.load(open("cache/CS_SIR.p", "rb"))
     for trial in xrange(sir_trials):
         print("Trial progress: {}".format(trial / float(sir_trials)))
         for p, r in product(ps, rs):
@@ -41,11 +42,11 @@ def run_trials(si_trials=2, sir_trials=2, sis_trials=2):
                 epi.simulate()
                 results["size"][p, r][node].append(epi.size)
                 results["length"][p, r][node].append(epi.length)
-    pickle.dump(results, open("cache/HIS_SIR.p", 'wb'))
+    pickle.dump(results, open("cache/CS_SIR.p", 'wb'))
     results.clear()
     print("SIR done")
 
-    results = pickle.load(open("cache/HIS_SIS.p", "rb"))
+    results = pickle.load(open("cache/CS_SIS.p", "rb"))
     for trial in xrange(sis_trials):
         print("Trial progress: {}".format(trial / float(sis_trials)))
         for p, r in product(ps, rs):
@@ -56,7 +57,7 @@ def run_trials(si_trials=2, sir_trials=2, sis_trials=2):
                 epi.simulate()
                 results["size"][p, r][node].append(epi.size)
                 results["length"][p, r][node].append(epi.length)
-    pickle.dump(results, open("cache/HIS_SIS.p", 'wb'))
+    pickle.dump(results, open("cache/CS_SIS.p", 'wb'))
     results.clear()
     print("SIS done")
 
