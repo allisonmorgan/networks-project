@@ -35,7 +35,7 @@ edges = []
 for edge in edgelist:
     # TODO: Doesn't store information on edge attributes.
     # Do we want this information (gender, rank)?
-    if int(edge[0]) == 145 or int(edge[1]) == 145:
+    if int(edge[0]) == 113 or int(edge[1]) == 113:
         continue
     edges.append((int(edge[0]), int(edge[1])))
 
