@@ -8,19 +8,19 @@ from epidemic import SI, SIR, SIS
 from importcompsci import faculty_graph_weighted, school_metadata
 
 def main():
-    print("nodes: ", len(faculty_graph_weighted.nodes()))
+    print("nodes: {0}".format(len(faculty_graph_weighted.nodes())))
 
-    n_trials = 3
+    n_trials = 50
     results_length = []
     results_size = []
     ps = np.linspace(0, 0.5, 5)
     for p in ps:
         results_length_i = []
         results_size_i = []
-        print("prob: ", p)
+        print("prob: {0}".format(p))
 
         for node in faculty_graph_weighted.nodes():
-            print("node %: ", node / float(faculty_graph_weighted.number_of_nodes()))
+            print("node %: {0}".format(node / float(faculty_graph_weighted.number_of_nodes())))
             trials_length = []
             trials_size = []
             for i in range(n_trials):

@@ -4,10 +4,10 @@ import random
 
 # TODO: should move these utility functions somewhere else
 def flip(p, weight=None):
-    if not weight:
+    if weight == None:
         return True if random.random() <= p else False
     else:
-        return True if float(random.random()) <= p*float(weight) else False
+        return True if random.random() <= p*float(weight) else False
 
 
 def filter_from(edges, from_node):
@@ -36,12 +36,10 @@ class SI(object):
         self.visited_edges = set()
         self.is_complete = False
 
-    def get_edge_weight(self, edge):
+    def get_edge_weight(self, attributes):
         weight = None
-        attributes = self.graph.get_edge_data(edge[0], edge[1])
         if attributes.has_key('weight'):
             weight = attributes['weight']
-
         return weight
 
     def infect_random_node(self):
@@ -68,14 +66,15 @@ class SI(object):
         # but the infection didn't spread.
         self.is_complete = True
         for u in self.infected.copy():
-            edges_to_try = [e for e in self.graph.edges(u)
-                            if e[1] in self.susceptible
-                            and e not in self.visited_edges]
-            for e in edges_to_try:
-                weight = self.get_edge_weight(e)
-                self.visited_edges.add(e)
+            edges_to_try = [(u, v, data) for (u, v, data) in 
+                            self.graph.edges(u, data=True)
+                            if v in self.susceptible
+                            and (u, v) not in self.visited_edges]
+            for u, v, data in edges_to_try:
+                weight = self.get_edge_weight(data)
+                self.visited_edges.add((u, v))
                 if flip(self.p, weight):
-                    self.infect_node(e[1])
+                    self.infect_node(v)
 
     def step(self):
         if not self.is_complete:
@@ -85,6 +84,7 @@ class SI(object):
         while not self.is_complete:
             self.step()
             self.time += 1
+        print("time: {0}, length: {1}".format(self.size, self.length))
 
     @property
     def size(self):
