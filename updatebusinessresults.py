@@ -12,7 +12,7 @@ from importbusiness import faculty_graph, school_metadata
 
 
 def run_trials(si_trials=2, sir_trials=2, sis_trials=2):
-    ps = np.linspace(0, 1, 11, endpoint=False)
+    ps = np.linspace(0, 1, 11, endpoint=False)    
     rs = np.linspace(0, 1, 5, endpoint=False)
 
     results = pickle.load(open("cache/BUSI_SI.p", "rb"))
