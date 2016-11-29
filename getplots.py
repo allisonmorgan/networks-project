@@ -64,7 +64,7 @@ def bad_node_of_dir(cache_dir):
     if "BUSI" in cache_dir:
         return 113
 
-
+# epidemic size and length versus prestige for various infection probabilities p
 def plot_si_prestige(cache_dir):
     cache = pickle.load(open(cache_dir, 'rb'))
     meta = meta_of_dir(cache_dir)
@@ -73,44 +73,117 @@ def plot_si_prestige(cache_dir):
     results_size = defaultdict(list)
     for p in cache["length"].keys():
         for node, lengths in cache["length"][p].items():
-            print(np.average(lengths))
+            #print(np.average(lengths))
             if node is bad_node_of_dir(cache_dir):
                 continue
             result = (meta[node]["pi"], normalize(graph, node, np.average(lengths)))
             results_length[p].append(result)
+        results_length[p] = sorted(results_length[p], key=lambda x: x[0])
     for p in cache["size"].keys():
         for node, sizes in cache["size"][p].items():
             if node is bad_node_of_dir(cache_dir):
                 continue
             result = (meta[node]["pi"], np.average(sizes))
             results_size[p].append(result)
+        results_size[p] = sorted(results_size[p], key=lambda x: x[0])
 
     length_of_results = len(cache["length"].keys())
-    print(length_of_results)
+    #print(length_of_results)
 
     colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
-    fig = plt.figure()
+    fig = plt.figure(figsize=(12,6))
     ax = plt.gca()
     for p, data in sorted(results_length.items(), key=lambda x: x[0]):
-        ax.scatter(*zip(*data), color=next(colors), label='p={0:.2f}'.format(p))
+        ax.plot(*zip(*data), color=next(colors), label='p = {0:.2f}'.format(p), marker = 'o')
 
     plt.xlabel('University Prestige (pi)')
     plt.ylabel('Normalized Epidemic Length')
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size':6})
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large')
     plt.ylim(0, 10)
 
     plt.savefig('results/test/length-results-of-{}.png'.format(plot_name_of_dir(cache_dir)))
     plt.clf()
 
     colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
-    fig = plt.figure()
+    fig = plt.figure(figsize=(12,6))
     ax = plt.gca()
     for p, data in sorted(results_size.items(), key=lambda x: x[0]):
-        ax.scatter(*zip(*data), color=next(colors), label='p={0:.2f}'.format(p))
+        ax.plot(*zip(*data), color=next(colors), label='p = {0:.2f}'.format(p), marker = 'o')
 
     plt.xlabel('University Prestige (pi)')
     plt.ylabel('Epidemic Size')
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size':6})
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large')
+    plt.ylim(0, 1)
+    plt.savefig('results/test/size-results-of-{}.png'.format(plot_name_of_dir(cache_dir)))
+
+# epidemic size and length versus prestige for various spreading parameters p/r
+def plot_sis_or_sir_prestige(cache_dir):
+    cache = pickle.load(open(cache_dir, 'rb'))
+    meta = meta_of_dir(cache_dir)
+    graph = graph_of_dir(cache_dir)
+    results_length = defaultdict(list)
+    results_size = defaultdict(list)
+    for (p, r) in cache["length"].keys():
+        if r == 0.0:
+            continue # can't divide by zero below. is this the right thing to do?
+        for node, lengths in cache["length"][p, r].items():
+            #print(np.average(lengths))
+            if node is bad_node_of_dir(cache_dir):
+                continue
+            result = (meta[node]["pi"], normalize(graph, node, np.average(lengths)))
+            results_length[p/r].append(result)
+    for (p, r) in cache["size"].keys():
+        if r == 0.0:
+            continue
+        for node, sizes in cache["size"][p, r].items():
+            if node is bad_node_of_dir(cache_dir):
+                continue
+            result = (meta[node]["pi"], np.average(sizes))
+            results_size[p/r].append(result)
+
+    # different values of p and r will return the same p/r. average these values?
+    for ratio, data in results_length.copy().items():
+        avg_by_prestige = defaultdict(list)
+        for pi, length in data:
+            avg_by_prestige[pi].append(length)
+
+        results_length[ratio] = [(pi, np.average(lengths)) for pi, lengths in avg_by_prestige.items()]
+        results_length[ratio] = sorted(results_length[ratio], key=lambda x: x[0])
+    #print(results_length[1])
+    for ratio, data in results_size.copy().items():
+        avg_by_prestige = defaultdict(list)
+        for pi, size in data:
+            avg_by_prestige[pi].append(size)
+
+        results_size[ratio] = [(pi, np.average(sizes)) for pi, sizes in avg_by_prestige.items()]
+        results_size[ratio] = sorted(results_size[ratio], key=lambda x: x[0])
+
+    length_of_results = len(results_size.keys())
+    #print(length_of_results)
+
+    colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
+    fig = plt.figure(figsize=(12,6))
+    ax = plt.gca()
+    for ratio, data in sorted(results_length.items(), key=lambda x: x[0]):
+        ax.plot(*zip(*data), color=next(colors), label='p/r = {0:.2f}'.format(ratio), marker = 'o')
+
+    plt.xlabel('University Prestige (pi)')
+    plt.ylabel('Normalized Epidemic Length')
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large')
+    plt.ylim(0, 10)
+
+    plt.savefig('results/test/length-results-of-{}.png'.format(plot_name_of_dir(cache_dir)))
+    plt.clf()
+
+    colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
+    fig = plt.figure(figsize=(12,6))
+    ax = plt.gca()
+    for ratio, data in sorted(results_size.items(), key=lambda x: x[0]):
+        ax.plot(*zip(*data), color=next(colors), label='p/r = {0:.2f}'.format(ratio), marker = 'o')
+
+    plt.xlabel('University Prestige (pi)')
+    plt.ylabel('Epidemic Size')
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large')
     plt.ylim(0, 1)
     plt.savefig('results/test/size-results-of-{}.png'.format(plot_name_of_dir(cache_dir)))
 
@@ -169,7 +242,7 @@ def plot_si_prestige(cache_dir):
 
 def main():
     plot_si_prestige(DIR_HIS_SI)
-
+    plot_sis_or_sir_prestige(DIR_HIS_SIR)
 
 if __name__ == "__main__":
     main()

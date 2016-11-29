@@ -84,7 +84,7 @@ class SI(object):
         while not self.is_complete:
             self.step()
             self.time += 1
-        print("time: {0}, length: {1}".format(self.size, self.length))
+        #print("time: {0}, length: {1}".format(self.size, self.length))
 
     @property
     def size(self):
