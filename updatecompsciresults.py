@@ -77,11 +77,11 @@ def run_trials_graph_with_random_hops(si_trials=2, sir_trials=2, sis_trials=2):
     fjumps = np.linspace(0, 1, 5)
 
     # vary jump probability
-    results = {"size": {}, "length": {}}
-    for p in pjumps:
-        results["size"][p] = defaultdict(list)
-        results["length"][p] = defaultdict(list)
-    #results = pickle.load(open("cache/random_hops/jump_probability/CS_SI.p", "rb"))
+    #results = {"size": {}, "length": {}}
+    #for p in pjumps:
+    #    results["size"][p] = defaultdict(list)
+    #    results["length"][p] = defaultdict(list)
+    results = pickle.load(open("cache/random_hops/jump_probability/CS_SI.p", "rb"))
     for trial in xrange(si_trials):
         print("Trial progress: {}".format(trial / float(si_trials)))
         for p in pjumps:
@@ -96,11 +96,11 @@ def run_trials_graph_with_random_hops(si_trials=2, sir_trials=2, sis_trials=2):
     results.clear()
 
     # vary fraction to jump to
-    results = {"size": {}, "length": {}}
-    for p in fjumps:
-    results["size"][p] = defaultdict(list)
-    results["length"][p] = defaultdict(list)
-    #results = pickle.load(open("cache/random_hops/number_of_jumps/CS_SI.p", "rb"))
+    #results = {"size": {}, "length": {}}
+    #for p in fjumps:
+    #    results["size"][p] = defaultdict(list)
+    #    results["length"][p] = defaultdict(list)
+    results = pickle.load(open("cache/random_hops/number_of_jumps/CS_SI.p", "rb"))
     for trial in xrange(si_trials):
         print("Trial progress: {}".format(trial / float(si_trials)))
         for p in fjumps:
@@ -116,11 +116,11 @@ def run_trials_graph_with_random_hops(si_trials=2, sir_trials=2, sis_trials=2):
 
     print("SI done")
 
-    results = {"size": {}, "length": {}}
-    for p in pjumps:
-        results["size"][p] = defaultdict(list)
-        results["length"][p] = defaultdict(list)
-    #results = pickle.load(open("cache/random_hops/jump_probability/CS_SIR.p", "rb"))
+    #results = {"size": {}, "length": {}}
+    #for p in pjumps:
+    #    results["size"][p] = defaultdict(list)
+    #    results["length"][p] = defaultdict(list)
+    results = pickle.load(open("cache/random_hops/jump_probability/CS_SIR.p", "rb"))
     for trial in xrange(sir_trials):
         print("Trial progress: {}".format(trial / float(sir_trials)))
         for p in pjumps:
@@ -134,11 +134,11 @@ def run_trials_graph_with_random_hops(si_trials=2, sir_trials=2, sis_trials=2):
     pickle.dump(results, open("cache/random_hops/jump_probability/CS_SIR.p", 'wb'))
     results.clear()
 
-    results = {"size": {}, "length": {}}
-    for p in fjumps:
-        results["size"][p] = defaultdict(list)
-        results["length"][p] = defaultdict(list)
-    #results = pickle.load(open("cache/random_hops/number_of_jumps/CS_SIR.p", "rb"))
+    #results = {"size": {}, "length": {}}
+    #for p in fjumps:
+    #    results["size"][p] = defaultdict(list)
+    #    results["length"][p] = defaultdict(list)
+    results = pickle.load(open("cache/random_hops/number_of_jumps/CS_SIR.p", "rb"))
     for trial in xrange(sir_trials):
         print("Trial progress: {}".format(trial / float(sir_trials)))
         for p in fjumps:
@@ -154,11 +154,11 @@ def run_trials_graph_with_random_hops(si_trials=2, sir_trials=2, sis_trials=2):
 
     print("SIR done")
 
-    results = {"size": {}, "length": {}}
-    for p in pjumps:
-        results["size"][p] = defaultdict(list)
-        results["length"][p] = defaultdict(list)
-    #results = pickle.load(open("cache/random_hops/jump_probability/CS_SIS.p", "rb"))
+    #results = {"size": {}, "length": {}}
+    #for p in pjumps:
+    #    results["size"][p] = defaultdict(list)
+    #    results["length"][p] = defaultdict(list)
+    results = pickle.load(open("cache/random_hops/jump_probability/CS_SIS.p", "rb"))
     for trial in xrange(sir_trials):
         print("Trial progress: {}".format(trial / float(sir_trials)))
         for p in pjumps:
@@ -172,11 +172,11 @@ def run_trials_graph_with_random_hops(si_trials=2, sir_trials=2, sis_trials=2):
     pickle.dump(results, open("cache/random_hops/jump_probability/CS_SIS.p", 'wb'))
     results.clear()
 
-    results = {"size": {}, "length": {}}
-    for p in fjumps:
-        results["size"][p] = defaultdict(list)
-        results["length"][p] = defaultdict(list)
-    #results = pickle.load(open("cache/random_hops/number_of_jumps/CS_SIS.p", "rb"))
+    #results = {"size": {}, "length": {}}
+    #for p in fjumps:
+    #    results["size"][p] = defaultdict(list)
+    #    results["length"][p] = defaultdict(list)
+    results = pickle.load(open("cache/random_hops/number_of_jumps/CS_SIS.p", "rb"))
     for trial in xrange(sir_trials):
         print("Trial progress: {}".format(trial / float(sir_trials)))
         for p in fjumps:
