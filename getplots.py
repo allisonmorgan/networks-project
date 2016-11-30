@@ -322,7 +322,7 @@ def plot_sis_or_sir_prestige(cache_dir):
 def main():
     #plot_si_prestige(DIR_CS_SI)
     #plot_sis_or_sir_prestige(DIR_CS_SIR)
-    plot_centrality()
+    #plot_centrality()
 
 if __name__ == "__main__":
     main()
