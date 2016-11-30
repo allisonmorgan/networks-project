@@ -246,6 +246,67 @@ def plot_sis_or_sir_prestige(cache_dir):
     plt.ylim(0, 1)
     plt.savefig('results/test/size-results-of-{}.png'.format(plot_name_of_dir(cache_dir)))
 
+def plot_random_jump(cache_dir):
+    cache = pickle.load(open(cache_dir, 'rb'))
+    meta = meta_of_dir(cache_dir)
+    graph = graph_of_dir(cache_dir)
+    results_length = defaultdict(list)
+    results_size = defaultdict(list)
+    for p in cache["length"].keys():
+        for node, lengths in cache["length"][p].items():
+            if node is bad_node_of_dir(cache_dir):
+                continue
+
+            avg = np.average(lengths)
+            if not np.isnan(avg) and not np.isinf(avg):
+                result = (meta[node]["pi"], normalize(graph, node, avg))
+                results_length[p].append(result)
+
+        results_length[p] = sorted(results_length[p], key=lambda x: x[0])
+
+    for p in cache["size"].keys():
+        for node, sizes in cache["size"][p].items():
+            if node is bad_node_of_dir(cache_dir):
+                continue
+
+            avg = np.average(sizes)
+            if not np.isnan(avg) and not np.isinf(avg):
+                result = (meta[node]["pi"], avg)
+                results_size[p].append(result)
+
+        results_size[p] = sorted(results_size[p], key=lambda x: x[0])
+
+    length_of_results = len(cache["length"].keys())
+    #print(length_of_results)
+
+    colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
+    fig = plt.figure(figsize=(12, 6))
+    ax = plt.gca()
+    for p, data in sorted(results_length.items(), key=lambda x: x[0]):
+        c = next(colors)
+        ax.scatter(*zip(*data), color=c, label='p = {0:.2f}'.format(p))
+
+    plt.xlabel('University Prestige (pi)')
+    plt.ylabel('Normalized Epidemic Length')
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large')
+    plt.ylim(0, 10)
+
+    plt.savefig('results/test/length-results-of-{}-for-jump-probability.png'.format(plot_name_of_dir(cache_dir)))
+    plt.clf()
+
+    colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
+    fig = plt.figure(figsize=(12, 6))
+    ax = plt.gca()
+    for p, data in sorted(results_size.items(), key=lambda x: x[0]):
+        c = next(colors)
+        ax.scatter(*zip(*data), color=c, label='p = {0:.2f}'.format(p))
+
+    plt.xlabel('University Prestige (pi)')
+    plt.ylabel('Epidemic Size')
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large')
+    plt.ylim(0, 1)
+    plt.savefig('results/test/size-results-of-{}-for-random-jumps.png'.format(plot_name_of_dir(cache_dir)))
+
 #def plot_sir_or_sis(cache_dir):
 #    cache = pickle.load(open(cache_dir, 'rb'))
 #    results_p = []; results_r = []; results_s = []; results_l = []
@@ -302,7 +363,7 @@ def plot_sis_or_sir_prestige(cache_dir):
 def main():
     #plot_si_prestige(DIR_CS_SI)
     #plot_sis_or_sir_prestige(DIR_CS_SIR)
-    plot_centrality()
+    #plot_centrality()
 
 if __name__ == "__main__":
     main()

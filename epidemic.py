@@ -35,7 +35,7 @@ class SI(object):
     random_jump_p : probability of a random jump (if is_random_jump is enabled)
         happening
 
-    n_random_jumps : number of random jumps to try if is_random_jump enabled
+    n_random_jumps : fraction of random jumps to try if is_random_jump enabled
 
     """
     def __init__(self,
@@ -43,7 +43,7 @@ class SI(object):
                  p=0.5,
                  is_random_jump=False,
                  random_jump_p=0.001,
-                 n_random_jumps=1):
+                 n_random_jumps=0.1):
         self.p = p
         self.graph = graph
         self.susceptible = set(nx.nodes(graph))
@@ -107,7 +107,7 @@ class SI(object):
                 susc_unreachable_from_u = unreachable_from_u.difference(self.infected)
                 if not susc_unreachable_from_u:
                     continue
-                vs = random.sample(susc_unreachable_from_u, self.n_random_jumps)
+                vs = random.sample(susc_unreachable_from_u, int(len(susc_unreachable_from_u)*self.n_random_jumps))
                 for v in vs:
                     if flip(self.random_jump_p):
                         self.infect_node(v)
