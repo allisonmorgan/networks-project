@@ -24,9 +24,11 @@ DIR_CS_SIS = "cache/CS_SIS.p"
 DIR_HIS_SIS = "cache/HIS_SIS.p"
 DIR_BUSI_SIS = "cache/BUSI_SIS.p"
 
+dirs = [DIR_CS_SI, DIR_HIS_SI, DIR_BUSI_SI, DIR_CS_SIR, DIR_HIS_SIR, DIR_BUSI_SIR, DIR_CS_SIS, DIR_HIS_SIS, DIR_BUSI_SIS]
 
 def sigmoid(x):
-  return 1 / (1 + math.exp(-x))
+    return 1 / (1 + math.exp(-x))
+
 
 def plot_name_of_dir(cache_dir):
     return cache_dir.replace("/", "_")[:-2]
@@ -68,6 +70,24 @@ def bad_node_of_dir(cache_dir):
     if "BUSI" in cache_dir:
         return 113
 
+
+def n_trials_of_dir(cache_dir):
+    cache = pickle.load(open(cache_dir, 'rb'))
+    try:
+        a_prob_key = cache["size"].iterkeys().next()
+        a_node_key = cache["size"][a_prob_key].iterkeys().next()
+        a_sizes_val = cache["size"][a_prob_key][a_node_key]
+        return len(a_sizes_val)
+    except:
+        return 0
+
+
+def print_n_trials():
+    for a_dir in dirs:
+        print(a_dir)
+        print(n_trials_of_dir(a_dir))
+
+
 def plot_centrality():
     colors = iter(cm.rainbow(np.linspace(0, 1, 3)))
     fig = plt.figure()
@@ -82,7 +102,7 @@ def plot_centrality():
             y.append(c)
 
         ax.scatter(x, y, label=dept, color=next(colors))
-    
+
     plt.xlabel('University Prestige (pi)')
     plt.ylabel('Closeness Centrality')
     plt.legend(loc='upper right', prop={'size': 9}, fontsize='large')
@@ -130,7 +150,7 @@ def plot_si_prestige(cache_dir):
         c = next(colors)
         ax.scatter(*zip(*data), color=c, label='p = {0:.2f}'.format(p))
         #ax.plot(*zip(*data), color=next(colors), label='p = {0:.2f}'.format(p), marker = 'o')
-        
+
         # fit a linear curve to this
         x = np.array([pi for (pi, length) in data if not np.isnan(length) and not np.isinf(length)])
         y = np.array([length for (pi, length) in data if not np.isnan(length) and not np.isinf(length)])
