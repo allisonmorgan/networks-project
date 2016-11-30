@@ -76,7 +76,7 @@ def run_trials(si_trials=2, sir_trials=2, sis_trials=2):
 
 def main():
     # set number of for each trials here (0 or more)
-    run_trials(si_trials=1, sir_trials=1, sis_trials=1)
+    run_trials(si_trials=500, sir_trials=50, sis_trials=25)
 
 
 if __name__ == "__main__":

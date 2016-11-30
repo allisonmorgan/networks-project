@@ -1,5 +1,7 @@
-import networkx as nx
 import random
+from collections import defaultdict
+
+import networkx as nx
 
 
 # TODO: should move these utility functions somewhere else
@@ -26,8 +28,22 @@ class SI(object):
 
     p : transmission probability
 
+    is_random_jump : for each node u, if that node ever gets infected,
+        give it exactly n_random_jumps (see below) chance to jump to a random node
+        in a random SCC distinct from the one that node u is a member of
+
+    random_jump_p : probability of a random jump (if is_random_jump is enabled)
+        happening
+
+    n_random_jumps : number of random jumps to try if is_random_jump enabled
+
     """
-    def __init__(self, graph, p=0.5, random_start=True):
+    def __init__(self,
+                 graph,
+                 p=0.5,
+                 is_random_jump=False,
+                 random_jump_p=0.001,
+                 n_random_jumps=1):
         self.p = p
         self.graph = graph
         self.susceptible = set(nx.nodes(graph))
@@ -35,13 +51,21 @@ class SI(object):
         self.time = 0
         self.visited_edges = set()
         self.is_complete = False
+        self.is_random_jump = is_random_jump
+        self.attempted_random_jump = defaultdict(bool)
+        self.random_jump_p = random_jump_p
+        self.n_random_jumps = n_random_jumps
+        # TODO: descendents should be memoized across different epidemics for the same network
+        self.descendents = {}
+        if is_random_jump:
+            for u in self.graph.nodes():
+                self.descendents[u] = nx.descendants(self.graph, u)
 
     def get_edge_weight(self, edge):
         weight = None
         attributes = self.graph.get_edge_data(edge[0], edge[1])
-        if attributes.has_key('weight'):
+        if 'weight' in attributes:
             weight = attributes['weight']
-
         return weight
 
     def infect_random_node(self):
@@ -76,6 +100,18 @@ class SI(object):
                 self.visited_edges.add(e)
                 if flip(self.p, weight):
                     self.infect_node(e[1])
+            if self.is_random_jump and not self.attempted_random_jump[u]:
+                self.attempted_random_jump[u] = True
+                nodes_of_graph = set(self.graph.nodes())
+                reachable_from_u = self.descendents[u]
+                unreachable_from_u = nodes_of_graph.difference(reachable_from_u)
+                susc_unreachable_from_u = unreachable_from_u.difference(self.infected)
+                if not susc_unreachable_from_u:
+                    continue
+                vs = random.sample(susc_unreachable_from_u, self.n_random_jumps)
+                for v in vs:
+                    if flip(self.random_jump_p):
+                        self.infect_node(v)
 
     def step(self):
         if not self.is_complete:
