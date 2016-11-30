@@ -24,7 +24,7 @@ def main():
             trials_length = []
             trials_size = []
             for i in range(n_trials):
-                epi = SI(faculty_graph.copy(), p=p, is_random_jump=True, random_jump_p=0.5)
+                epi = SI(faculty_graph.copy(), p=p, is_random_jump=True, random_jump_p=0.9)
                 epi.infect_node(node)
                 epi.simulate()
                 trials_length.append(epi.length)
@@ -44,7 +44,7 @@ def main():
 
     plt.xlabel('University Prestige (pi)')
     plt.ylabel('Epidemic Length')
-    plt.legend(loc=2)
+    plt.legend(loc=3)
     plt.ylim(0, 10)
 
     #plt.savefig('results/weighted0-length-{}-trials.png'.format(n_trials))
@@ -59,7 +59,7 @@ def main():
 
     plt.xlabel('University Prestige (pi)')
     plt.ylabel('Epidemic Size')
-    plt.legend(loc=2)
+    plt.legend(loc=3)
     plt.ylim(0, 1)
     #plt.savefig('results/weighted0-size-{}-trials.png'.format(n_trials))
     plt.show()

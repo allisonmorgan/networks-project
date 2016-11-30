@@ -6,10 +6,10 @@ import networkx as nx
 
 # TODO: should move these utility functions somewhere else
 def flip(p, weight=None):
-    if not weight:
+    if weight is None:
         return True if random.random() <= p else False
     else:
-        return True if float(random.random()) <= p*float(weight) else False
+        return True if random.random() <= p*float(weight) else False
 
 
 def filter_from(edges, from_node):
@@ -52,18 +52,16 @@ class SI(object):
         self.visited_edges = set()
         self.is_complete = False
         self.is_random_jump = is_random_jump
-        self.attempted_random_jump = defaultdict(bool)
-        self.random_jump_p = random_jump_p
-        self.n_random_jumps = n_random_jumps
-        # TODO: descendents should be memoized across different epidemics for the same network
-        self.descendents = {}
         if is_random_jump:
+            self.attempted_random_jump = defaultdict(bool)
+            self.random_jump_p = random_jump_p
+            self.n_random_jumps = n_random_jumps
+            self.descendents = {}
             for u in self.graph.nodes():
-                self.descendents[u] = nx.descendants(self.graph, u)
+                self.descendents[u] = nx.descendants(graph, u)
 
-    def get_edge_weight(self, edge):
+    def get_edge_weight(self, attributes):
         weight = None
-        attributes = self.graph.get_edge_data(edge[0], edge[1])
         if 'weight' in attributes:
             weight = attributes['weight']
         return weight
@@ -92,14 +90,15 @@ class SI(object):
         # but the infection didn't spread.
         self.is_complete = True
         for u in self.infected.copy():
-            edges_to_try = [e for e in self.graph.edges(u)
-                            if e[1] in self.susceptible
-                            and e not in self.visited_edges]
-            for e in edges_to_try:
-                weight = self.get_edge_weight(e)
-                self.visited_edges.add(e)
+            edges_to_try = [(u, v, data) for (u, v, data) in
+                            self.graph.edges(u, data=True)
+                            if v in self.susceptible
+                            and (u, v) not in self.visited_edges]
+            for u, v, data in edges_to_try:
+                weight = self.get_edge_weight(data)
+                self.visited_edges.add((u, v))
                 if flip(self.p, weight):
-                    self.infect_node(e[1])
+                    self.infect_node(v)
             if self.is_random_jump and not self.attempted_random_jump[u]:
                 self.attempted_random_jump[u] = True
                 nodes_of_graph = set(self.graph.nodes())
@@ -121,6 +120,7 @@ class SI(object):
         while not self.is_complete:
             self.step()
             self.time += 1
+        #print("time: {0}, length: {1}".format(self.size, self.length))
 
     @property
     def size(self):
