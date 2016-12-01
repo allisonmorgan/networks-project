@@ -1,5 +1,7 @@
 from collections import defaultdict
-from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.linear_model import LinearRegression
+from matplotlib.lines import Line2D
+from scipy.optimize import curve_fit
 import math
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -24,11 +26,20 @@ DIR_CS_SIS = "cache/CS_SIS.p"
 DIR_HIS_SIS = "cache/HIS_SIS.p"
 DIR_BUSI_SIS = "cache/BUSI_SIS.p"
 
+DIR_CS_SI_JUMP_PROBABILITY = "cache/random_hops/jump_probability/CS_SI.p"
+DIR_CS_SI_N_JUMPS = "cache/random_hops/number_of_jumps/CS_SI.p"
+
+DIR_CS_SIR_JUMP_PROBABILITY = "cache/random_hops/jump_probability/CS_SIR.p"
+DIR_CS_SIR_N_JUMPS = "cache/random_hops/number_of_jumps/CS_SIR.p"
+
+DIR_CS_SIS_JUMP_PROBABILITY = "cache/random_hops/jump_probability/CS_SIS.p"
+DIR_CS_SIS_N_JUMPS = "cache/random_hops/number_of_jumps/CS_SIS.p"
+
 dirs = [DIR_CS_SI, DIR_HIS_SI, DIR_BUSI_SI, DIR_CS_SIR, DIR_HIS_SIR, DIR_BUSI_SIR, DIR_CS_SIS, DIR_HIS_SIS, DIR_BUSI_SIS]
 
-def sigmoid(x):
-    return 1 / (1 + math.exp(-x))
-
+def sigmoid(x, x0, k, a, c):
+    y = a / (1 + np.exp(-k*(x-x0))) + c
+    return y
 
 def plot_name_of_dir(cache_dir):
     return cache_dir.replace("/", "_")[:-2]
@@ -81,19 +92,18 @@ def n_trials_of_dir(cache_dir):
     except:
         return 0
 
-
 def print_n_trials():
     for a_dir in dirs:
         print(a_dir)
         print(n_trials_of_dir(a_dir))
 
-
 def plot_centrality():
     colors = iter(cm.rainbow(np.linspace(0, 1, 3)))
+    markers = Line2D.filled_markers
     fig = plt.figure()
     ax = plt.gca()
 
-    for faculty_graph, school_metadata, dept in [(g_cs, meta_cs, "Computer Science"), (g_busi, meta_busi, "Business"), (g_his, meta_his, "History")]:
+    for i, (faculty_graph, school_metadata, dept) in enumerate([(g_cs, meta_cs, "Computer Science"), (g_busi, meta_busi, "Business"), (g_his, meta_his, "History")]):
         centrality = nx.closeness_centrality(faculty_graph)
 
         x = []; y = []
@@ -101,10 +111,10 @@ def plot_centrality():
             x.append(school_metadata[vertex]['pi'])
             y.append(c)
 
-        ax.scatter(x, y, label=dept, color=next(colors))
+        ax.scatter(x, y, label=dept, color=next(colors), marker=markers[i])
 
-    plt.xlabel('University Prestige (pi)')
-    plt.ylabel('Closeness Centrality')
+    plt.xlabel(r'University Prestige (pi)')
+    plt.ylabel(r'Closeness Centrality')
     plt.legend(loc='upper right', prop={'size': 9}, fontsize='large')
     plt.savefig("results/centrality.png")
     plt.clf()
@@ -146,9 +156,10 @@ def plot_si_prestige(cache_dir):
     colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
     fig = plt.figure(figsize=(12, 6))
     ax = plt.gca()
+    markers = Line2D.filled_markers; count = -1
     for p, data in sorted(results_length.items(), key=lambda x: x[0]):
-        c = next(colors)
-        ax.scatter(*zip(*data), color=c, label='p = {0:.2f}'.format(p))
+        c = next(colors); count +=1; m = markers[count]
+        ax.scatter(*zip(*data), color=c, label='{0:.2f}'.format(p), s=10, marker=m)
         #ax.plot(*zip(*data), color=next(colors), label='p = {0:.2f}'.format(p), marker = 'o')
 
         # fit a linear curve to this
@@ -160,9 +171,9 @@ def plot_si_prestige(cache_dir):
         interval = np.array([min(x), max(x)])
         ax.plot(interval, interval*regr.coef_[0] + regr.intercept_, color=c)
 
-    plt.xlabel('University Prestige (pi)')
-    plt.ylabel('Normalized Epidemic Length')
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large')
+    plt.xlabel(r'University Prestige (pi)')
+    plt.ylabel(r'Normalized Epidemic Length')
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 12}, fontsize='large', title=r'$p$')
     plt.ylim(0, 10)
 
     plt.savefig('results/test/length-results-of-{}.png'.format(plot_name_of_dir(cache_dir)))
@@ -171,25 +182,25 @@ def plot_si_prestige(cache_dir):
     colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
     fig = plt.figure(figsize=(12, 6))
     ax = plt.gca()
+    markers = Line2D.filled_markers; count = -1
     for p, data in sorted(results_size.items(), key=lambda x: x[0]):
-        c = next(colors)
-        ax.scatter(*zip(*data), color=c, label='p = {0:.2f}'.format(p))
+        c = next(colors); count += 1; m = markers[count]
+        ax.scatter(*zip(*data), color=c, label='{0:.2f}'.format(p), s=10, marker=m)
         #ax.plot(*zip(*data), color=next(colors), label='p = {0:.2f}'.format(p), marker = 'o')
 
         #if p > 0:
             # fit a logistic curve to this
-            #x = np.array([pi for (pi, length) in data if not np.isnan(length) and not np.isinf(length)])
-            #y = np.array([str(length) for (pi, length) in data if not np.isnan(length) and not np.isinf(length)])
+            #x = [pi for (pi, length) in data if not np.isnan(length) and not np.isinf(length)]
+            #y = [str(length) for (pi, length) in data if not np.isnan(length) and not np.isinf(length)]
 
-            #regr = LogisticRegression()
-            #regr.fit(x.reshape(-1, 1), y)
+            #popt, pcov = curve_fit(sigmoid, np.array(x), np.array(y))
+            #y = sigmoid(x, *popt)
 
-            #loss = sigmoid(x * regr.coef_ + regr.intercept_).ravel()
-            #ax.plot(x, loss, "-", color=c)
+            #ax.plot(x, y, color=c)
 
-    plt.xlabel('University Prestige (pi)')
-    plt.ylabel('Epidemic Size')
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large')
+    plt.xlabel(r'University Prestige (pi)')
+    plt.ylabel(r'Epidemic Size')
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 12}, fontsize='large', title=r'$p$')
     plt.ylim(0, 1)
     plt.savefig('results/test/size-results-of-{}.png'.format(plot_name_of_dir(cache_dir)))
 
@@ -241,13 +252,18 @@ def plot_sis_or_sir_prestige(cache_dir):
     colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
     fig = plt.figure(figsize=(12, 6))
     ax = plt.gca()
+    markers = Line2D.filled_markers; count = -1
     for ratio, data in sorted(results_length.items(), key=lambda x: x[0]):
-        ax.scatter(*zip(*data), color=next(colors), label='p/r = {0:.2f}'.format(ratio))
+        count += 1
+        if count == len(markers):
+            count = 0
+        m = markers[count]
+        ax.scatter(*zip(*data), color=next(colors), label='{0:.2f}'.format(ratio), s=10, marker=m)
         #ax.plot(*zip(*data), color=next(colors), label='p/r = {0:.2f}'.format(ratio), marker = 'o')
 
-    plt.xlabel('University Prestige (pi)')
-    plt.ylabel('Normalized Epidemic Length')
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large')
+    plt.xlabel(r'University Prestige (pi)')
+    plt.ylabel(r'Normalized Epidemic Length')
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large', title=r'$p/r$')
     plt.ylim(0, 10)
 
     plt.savefig('results/test/length-results-of-{}.png'.format(plot_name_of_dir(cache_dir)))
@@ -256,15 +272,82 @@ def plot_sis_or_sir_prestige(cache_dir):
     colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
     fig = plt.figure(figsize=(12, 6))
     ax = plt.gca()
+    markers = Line2D.filled_markers; count = -1
     for ratio, data in sorted(results_size.items(), key=lambda x: x[0]):
-        ax.scatter(*zip(*data), color=next(colors), label='p/r = {0:.2f}'.format(ratio))
+        count += 1
+        if count == len(markers):
+            count = 0
+        m = markers[count]
+        ax.scatter(*zip(*data), color=next(colors), label='{0:.2f}'.format(ratio), s=10, marker=m)
         #ax.plot(*zip(*data), color=next(colors), label='p/r = {0:.2f}'.format(ratio), marker = 'o')
 
-    plt.xlabel('University Prestige (pi)')
-    plt.ylabel('Epidemic Size')
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large')
+    plt.xlabel(r'University Prestige (pi)')
+    plt.ylabel(r'Epidemic Size')
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large', title=r'$p/r$')
     plt.ylim(0, 1)
     plt.savefig('results/test/size-results-of-{}.png'.format(plot_name_of_dir(cache_dir)))
+
+def plot_random_hops(cache_dir):
+    cache = pickle.load(open(cache_dir, 'rb'))
+    meta = meta_of_dir(cache_dir)
+    graph = graph_of_dir(cache_dir)
+    results_length = defaultdict(list)
+    results_size = defaultdict(list)
+    for p in cache["length"].keys():
+        for node, lengths in cache["length"][p].items():
+            if node is bad_node_of_dir(cache_dir):
+                continue
+
+            avg = np.average(lengths)
+            if not np.isnan(avg) and not np.isinf(avg):
+                result = (meta[node]["pi"], normalize(graph, node, avg))
+                results_length[p].append(result)
+
+        results_length[p] = sorted(results_length[p], key=lambda x: x[0])
+
+    for p in cache["size"].keys():
+        for node, sizes in cache["size"][p].items():
+            if node is bad_node_of_dir(cache_dir):
+                continue
+
+            avg = np.average(sizes)
+            if not np.isnan(avg) and not np.isinf(avg):
+                result = (meta[node]["pi"], avg)
+                results_size[p].append(result)
+
+        results_size[p] = sorted(results_size[p], key=lambda x: x[0])
+
+    length_of_results = len(cache["length"].keys())
+
+    colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
+    fig = plt.figure(figsize=(12, 6))
+    ax = plt.gca()
+    markers = Line2D.filled_markers; count = -1
+    for p, data in sorted(results_length.items(), key=lambda x: x[0]):
+        c = next(colors); count += 1; m = markers[count]
+        ax.scatter(*zip(*data), color=c, label='p = {0:.2f}'.format(p), s=10, marker=m)
+
+    plt.xlabel(r'University Prestige (pi)')
+    plt.ylabel(r'Normalized Epidemic Length')
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large', title=r"p")
+    plt.ylim(0, 10)
+
+    plt.savefig('results/test/length-results-of-{}-random-hops.png'.format(plot_name_of_dir(cache_dir)))
+    plt.clf()
+
+    colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
+    fig = plt.figure(figsize=(12, 6))
+    ax = plt.gca()
+    markers = Line2D.filled_markers; count = -1
+    for p, data in sorted(results_size.items(), key=lambda x: x[0]):
+        c = next(colors); count += 1; m = markers[count]
+        ax.scatter(*zip(*data), color=c, label='p = {0:.2f}'.format(p), s=10, marker=m)
+
+    plt.xlabel(r'University Prestige (pi)')
+    plt.ylabel(r'Epidemic Size')
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large', title=r"p")
+    plt.ylim(0, 1)
+    plt.savefig('results/test/size-results-of-{}-random-hops.png'.format(plot_name_of_dir(cache_dir)))
 
 #def plot_sir_or_sis(cache_dir):
 #    cache = pickle.load(open(cache_dir, 'rb'))
@@ -320,9 +403,28 @@ def plot_sis_or_sir_prestige(cache_dir):
 #    plt.clf()
 
 def main():
-    #plot_si_prestige(DIR_CS_SI)
-    #plot_sis_or_sir_prestige(DIR_CS_SIR)
+
     #plot_centrality()
+
+    plot_si_prestige(DIR_CS_SI)
+    #plot_sis_or_sir_prestige(DIR_CS_SIR)
+    #plot_sis_or_sir_prestige(DIR_CS_SIS)
+
+    plot_si_prestige(DIR_HIS_SI)
+    #plot_sis_or_sir_prestige(DIR_HIS_SIR)
+    #plot_sis_or_sir_prestige(DIR_HIS_SIS)
+
+    plot_si_prestige(DIR_BUSI_SI)
+    #plot_sis_or_sir_prestige(DIR_BUSI_SIR)
+    #plot_sis_or_sir_prestige(DIR_BUSI_SIS)
+
+    #plot_random_hops(DIR_CS_SI_JUMP_PROBABILITY)
+    #plot_random_hops(DIR_CS_SIR_JUMP_PROBABILITY)
+    #plot_random_hops(DIR_CS_SIS_JUMP_PROBABILITY)
+
+    #plot_random_hops(DIR_CS_SI_N_JUMPS)
+    #plot_random_hops(DIR_CS_SIR_N_JUMPS)
+    #plot_random_hops(DIR_CS_SIS_N_JUMPS)
 
 if __name__ == "__main__":
     main()
