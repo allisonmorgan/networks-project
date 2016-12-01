@@ -132,8 +132,8 @@ class SI(object):
 
 
 class SIR(SI):
-    def __init__(self, graph, p=0.2, r=0.8):
-        super(SIR, self).__init__(graph, p)
+    def __init__(self, graph, p=0.2, r=0.8, is_random_jump=False, random_jump_p=0.001, n_random_jumps=0.1):
+        super(SIR, self).__init__(graph, p, is_random_jump, random_jump_p, n_random_jumps)
         self.r = r
         self.recovered = set()
 
@@ -149,8 +149,8 @@ class SIR(SI):
 
 
 class SIS(SI):
-    def __init__(self, graph, p=0.2, r=0.8):
-        super(SIS, self).__init__(graph, p)
+    def __init__(self, graph, p=0.2, r=0.8, is_random_jump=False, random_jump_p=0.001, n_random_jumps=0.1):
+        super(SIS, self).__init__(graph, p, is_random_jump, random_jump_p, n_random_jumps)
         self.r = r
 
     def __recover_step(self):
