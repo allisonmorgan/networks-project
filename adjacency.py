@@ -10,23 +10,12 @@ from importhistory import school_metadata as meta_his, faculty_graph as g_his
 from importbusiness import school_metadata as meta_busi, faculty_graph as g_busi
 
 def main():
-  fig, axarray = plt.subplots(1, 3, figsize=(15,5))
+  fig, axarray = plt.subplots(1, 3, figsize=(12,5))
   #fig = plt.figure(figsize=(15,10))
 
   for l, (g, title) in enumerate([(g_busi, "Business"), (g_cs, "Computer Science"), (g_his, "History")]):
     # Vertices are ordered by prestige in the dataset
     adj = nx.to_numpy_matrix(g, dtype=int)
-
-    #fig = plt.figure(figsize=(15,10))
-    #ax = fig.add_subplot(111)
-    #cax = plt.matshow(adj, cmap=plt.cm.Blues)
-    #fig.colorbar(cax)
-
-    #ax.set_ylabel("PhD Granting Institution")
-    #ax.set_xlabel("Faculty Placement Institution")
-
-    #plt.savefig("results/adjacency.png")
-    #plt.clf()
 
     # Scale adjacency matrix by a vertex's outdegree.
     # Edges i -> j are from row_i -> col_j
@@ -61,7 +50,7 @@ def main():
       axarray[l].set_ylabel("PhD Granting Institution")
       axarray[l].set_xlabel("Faculty Placement Institution")
 
-    axarray[l].set_title(title)
+    axarray[l].set_title(title, y=1.15)
 
   #fig.colorbar(cax)
 
