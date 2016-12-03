@@ -311,7 +311,7 @@ def plot_sis_or_sir_prestige_length(cache_dirs, epidemic_type):
         for ratio, data in sorted(results_length.items(), key=lambda x: x[0]):
             if "%.1f" % ratio not in filtered:
                 continue
-            ax.scatter(*zip(*data), color=next(colors), label='p/r = {0:.2f}'.format(ratio))
+            ax.scatter(*zip(*data), color=next(colors), label='{0:.2f}'.format(ratio))
             #ax.plot(*zip(*data), color=next(colors), label='p/r = {0:.2f}'.format(ratio), marker = 'o')
 
         ax.set_title(title)
@@ -320,7 +320,7 @@ def plot_sis_or_sir_prestige_length(cache_dirs, epidemic_type):
             ax.set_ylabel('Normalized Epidemic Length')
 
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large', title=r'$p/r$')
-    plt.ylim(0, 5)
+    plt.ylim(0, 30)
     plt.savefig('results/test/length-results-of-ALL-{0}.png'.format(epidemic_type))
     plt.clf()
 
