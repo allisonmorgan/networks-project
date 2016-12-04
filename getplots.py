@@ -231,7 +231,7 @@ def plot_si_prestige_length(cache_dirs):
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 12}, fontsize='large', title=r'$p$')
     plt.savefig('results/test/length-results-of-ALL-SI.png')
 
-def plot_sis_or_sir_prestige_size(cache_dirs, epidemic_type):
+def plot_sis_or_sir_prestige_size(cache_dirs, epidemic_type, ylim=(0,1)):
     fig, axarray = plt.subplots(1, len(cache_dirs), figsize=(20,5), sharey=True)
     for i, ax in enumerate(axarray):
         (title, cache_dir) = cache_dirs[i]
@@ -261,10 +261,22 @@ def plot_sis_or_sir_prestige_size(cache_dirs, epidemic_type):
         length_of_results = len(filtered)
 
         colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
+        markers = Line2D.filled_markers; count = -1
         for ratio, data in sorted(results_size.items(), key=lambda x: x[0]):
             if "%.1f" % ratio not in filtered:
                 continue
-            ax.scatter(*zip(*data), color=next(colors), label='{0:.2f}'.format(ratio))
+            c = next(colors); count += 1; m = markers[count]
+            ax.scatter(*zip(*data), color=c, label='{0:.2f}'.format(ratio), marker=m)
+
+            if ratio > 0:
+                # fit a logistic curve to this
+                x = [pi for (pi, length) in data if not np.isnan(length) and not np.isinf(length)]
+                y = [length for (pi, length) in data if not np.isnan(length) and not np.isinf(length)]
+
+                popt, pcov = curve_fit(curve, np.array(x), np.array(y), bounds=(0., [1., 2., 200.]))
+                y = curve(x, *popt)
+
+                ax.plot(x, y, color=c)
             #ax.plot(*zip(*data), color=next(colors), label='p/r = {0:.2f}'.format(ratio), marker = 'o')
 
         ax.set_title(title)
@@ -273,11 +285,11 @@ def plot_sis_or_sir_prestige_size(cache_dirs, epidemic_type):
             ax.set_ylabel('Epidemic Size')
 
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large', title=r'$p/r$')
-    plt.ylim(0, 1)
+    plt.ylim(ylim)
     plt.savefig('results/test/size-results-of-ALL-{}.png'.format(epidemic_type))
     plt.clf()
 
-def plot_sis_or_sir_prestige_length(cache_dirs, epidemic_type):
+def plot_sis_or_sir_prestige_length(cache_dirs, epidemic_type, ylim=(0,10)):
     fig, axarray = plt.subplots(1, len(cache_dirs), figsize=(20,5), sharey=True)
     for i, ax in enumerate(axarray):
         (title, cache_dir) = cache_dirs[i]
@@ -308,10 +320,17 @@ def plot_sis_or_sir_prestige_length(cache_dirs, epidemic_type):
         length_of_results = len(filtered)
 
         colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
+        markers = Line2D.filled_markers; count = -1
         for ratio, data in sorted(results_length.items(), key=lambda x: x[0]):
             if "%.1f" % ratio not in filtered:
                 continue
-            ax.scatter(*zip(*data), color=next(colors), label='{0:.2f}'.format(ratio))
+            c = next(color); count += 1
+            ax.scatter(*zip(*data), color=c, label='{0:.2f}'.format(ratio), marker=markers[count])
+
+            #regr = LinearRegression()
+            #regr.fit(x.reshape(-1, 1), y.reshape(-1, 1))
+            #interval = np.array([min(x), max(x)])
+            #ax.plot(interval, interval*regr.coef_[0] + regr.intercept_, color=c)
             #ax.plot(*zip(*data), color=next(colors), label='p/r = {0:.2f}'.format(ratio), marker = 'o')
 
         ax.set_title(title)
@@ -320,7 +339,7 @@ def plot_sis_or_sir_prestige_length(cache_dirs, epidemic_type):
             ax.set_ylabel('Normalized Epidemic Length')
 
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large', title=r'$p/r$')
-    plt.ylim(0, 30)
+    plt.ylim(ylim)
     plt.savefig('results/test/length-results-of-ALL-{0}.png'.format(epidemic_type))
     plt.clf()
 
@@ -449,8 +468,10 @@ def main():
     #plot_sis_or_sir_prestige_length(all_departments_SIR, "SIR")
     #plot_sis_or_sir_prestige_size(all_departments_SIR, "SIR")
 
-    #plot_sis_or_sir_prestige_length(all_departments_SIS, "SIS")
-    #plot_sis_or_sir_prestige_size(all_departments_SIS, "SIS")
+    #plot_sis_or_sir_prestige_length(all_departments_SIR, "SIR", ylim=(0, 5))
+    #plot_sis_or_sir_prestige_length(all_departments_SIS, "SIS", ylim=(0, 60))
+    #plot_sis_or_sir_prestige_size(all_departments_SIR, "SIR", ylim=(0,1.0))
+    #plot_sis_or_sir_prestige_size(all_departments_SIS, "SIS", ylim=(0,0.2))
     #plot_centrality()
 
     #plot_random_hops(DIR_CS_SI_JUMP_PROBABILITY)
