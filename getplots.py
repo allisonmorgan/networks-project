@@ -27,19 +27,16 @@ DIR_HIS_SIS = "cache/HIS_SIS.p"
 DIR_BUSI_SIS = "cache/BUSI_SIS.p"
 
 DIR_CS_SI_JUMP_PROBABILITY = "cache/random_hops/jump_probability/CS_SI.p"
-DIR_CS_SI_N_JUMPS = "cache/random_hops/number_of_jumps/CS_SI.p"
-
-DIR_CS_SIR_JUMP_PROBABILITY = "cache/random_hops/jump_probability/CS_SIR.p"
-DIR_CS_SIR_N_JUMPS = "cache/random_hops/number_of_jumps/CS_SIR.p"
-
-DIR_CS_SIS_JUMP_PROBABILITY = "cache/random_hops/jump_probability/CS_SIS.p"
-DIR_CS_SIS_N_JUMPS = "cache/random_hops/number_of_jumps/CS_SIS.p"
+DIR_HIS_SI_JUMP_PROBABILITY = "cache/random_hops/jump_probability/HIS_SI.p"
+DIR_BUSI_SI_JUMP_PROBABILITY = "cache/random_hops/jump_probability/BUSI_SI.p"
 
 dirs = [DIR_CS_SI, DIR_HIS_SI, DIR_BUSI_SI, DIR_CS_SIR, DIR_HIS_SIR, DIR_BUSI_SIR, DIR_CS_SIS, DIR_HIS_SIS, DIR_BUSI_SIS]
 
 all_departments_SI = [("Business", DIR_BUSI_SI), ("Computer Science", DIR_CS_SI), ("History", DIR_HIS_SI)]
 all_departments_SIR = [("Business", DIR_BUSI_SIR), ("Computer Science", DIR_CS_SIR), ("History", DIR_HIS_SIR)]
 all_departments_SIS = [("Business", DIR_BUSI_SIS), ("Computer Science", DIR_CS_SIS), ("History", DIR_HIS_SIS)]
+
+all_departments_SI_random_jump = [("Business", DIR_BUSI_SI_JUMP_PROBABILITY), ("Computer Science", DIR_CS_SI_JUMP_PROBABILITY), ("History", DIR_HIS_SI_JUMP_PROBABILITY)]
 
 def curve(x, h, a, k):
     return h / (1 + np.exp(a * (x - k)))
@@ -344,67 +341,45 @@ def plot_sis_or_sir_prestige_length(cache_dirs, epidemic_type, ylim=(0,10)):
     plt.clf()
 
 
-def plot_random_hops(cache_dir):
-    cache = pickle.load(open(cache_dir, 'rb'))
-    meta = meta_of_dir(cache_dir)
-    graph = graph_of_dir(cache_dir)
-    results_length = defaultdict(list)
-    results_size = defaultdict(list)
-    for p in cache["length"].keys():
-        for node, lengths in cache["length"][p].items():
-            if node is bad_node_of_dir(cache_dir):
+def plot_random_hop_size(cache_dirs, epidemic_type):
+    fig, axarray = plt.subplots(1, len(cache_dirs), figsize=(20,5), sharey=True)
+    for i, ax in enumerate(axarray):
+        (title, cache_dir) = cache_dirs[i]
+        cache = pickle.load(open(cache_dir, 'rb'))
+        meta = meta_of_dir(cache_dir)
+        graph = graph_of_dir(cache_dir)
+        results_size = defaultdict(list)
+        for p in cache["size"].keys():
+            for node, sizes in cache["size"][p].items():
+                if node is bad_node_of_dir(cache_dir):
+                    continue
+
+                avg = np.average(sizes)
+                if not np.isnan(avg) and not np.isinf(avg):
+                    result = (meta[node]["pi"], avg)
+                    results_size[p].append(result)
+
+            results_size[p] = sorted(results_size[p], key=lambda x: x[0])
+
+        filtered = sorted(cache["size"].keys())[1::2]
+        length_of_results = len(filtered)
+
+        colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
+        markers = Line2D.filled_markers; count = -1
+        for p, data in sorted(results_size.items(), key=lambda x: x[0]):
+            if p not in filtered:
                 continue
+            c = next(colors); count += 1; m = markers[count]
+            ax.scatter(*zip(*data), color=c, label='p = {0:.2f}'.format(p), s=10, marker=m)
 
-            avg = np.average(lengths)
-            if not np.isnan(avg) and not np.isinf(avg):
-                result = (meta[node]["pi"], normalize(graph, node, avg))
-                results_length[p].append(result)
-
-        results_length[p] = sorted(results_length[p], key=lambda x: x[0])
-
-    for p in cache["size"].keys():
-        for node, sizes in cache["size"][p].items():
-            if node is bad_node_of_dir(cache_dir):
-                continue
-
-            avg = np.average(sizes)
-            if not np.isnan(avg) and not np.isinf(avg):
-                result = (meta[node]["pi"], avg)
-                results_size[p].append(result)
-
-        results_size[p] = sorted(results_size[p], key=lambda x: x[0])
-
-    length_of_results = len(filtered)
-
-    colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
-    fig = plt.figure(figsize=(12, 6))
-    ax = plt.gca()
-    markers = Line2D.filled_markers; count = -1
-    for p, data in sorted(results_length.items(), key=lambda x: x[0]):
-        c = next(colors); count += 1; m = markers[count]
-        ax.scatter(*zip(*data), color=c, label='p = {0:.2f}'.format(p), s=10, marker=m)
-
-    plt.xlabel(r'University Prestige (pi)')
-    plt.ylabel(r'Normalized Epidemic Length')
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large', title=r"p")
-    plt.ylim(0, 10)
-
-    plt.savefig('results/test/length-results-of-{}-random-hops.png'.format(plot_name_of_dir(cache_dir)))
-    plt.clf()
-
-    colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
-    fig = plt.figure(figsize=(12, 6))
-    ax = plt.gca()
-    markers = Line2D.filled_markers; count = -1
-    for p, data in sorted(results_size.items(), key=lambda x: x[0]):
-        c = next(colors); count += 1; m = markers[count]
-        ax.scatter(*zip(*data), color=c, label='p = {0:.2f}'.format(p), s=10, marker=m)
-
-    plt.xlabel(r'University Prestige (pi)')
-    plt.ylabel(r'Epidemic Size')
+        ax.set_title(title)
+        if i == 0: 
+            ax.set_xlabel(r'University Prestige (pi)')
+            ax.set_ylabel(r'Epidemic Size')
+        
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large', title=r"p")
     plt.ylim(0, 1)
-    plt.savefig('results/test/size-results-of-{}-random-hops.png'.format(plot_name_of_dir(cache_dir)))
+    plt.savefig('results/test/size-results-of-ALL-{}-random-hops.png'.format(epidemic_type))
 
 # TODO: 3D plots
 #def plot_sir_or_sis(cache_dir):
@@ -474,9 +449,7 @@ def main():
     #plot_sis_or_sir_prestige_size(all_departments_SIS, "SIS", ylim=(0,0.2))
     #plot_centrality()
 
-    #plot_random_hops(DIR_CS_SI_JUMP_PROBABILITY)
-    #plot_random_hops(DIR_CS_SIR_JUMP_PROBABILITY)
-    #plot_random_hops(DIR_CS_SIS_JUMP_PROBABILITY)
+    plot_random_hop_size(all_departments_SI_random_jump, "SI")
 
 
 if __name__ == "__main__":
