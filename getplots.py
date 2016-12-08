@@ -72,6 +72,13 @@ def meta_of_dir(directory):
 def normalize(graph, node, length):
     return float(length) / avg_geodesic_path_length_from(node, graph)
 
+def average_across_infection_probability(tuples):
+    dictionary = defaultdict(list)
+    for (infection_prob, size) in tuples:
+        dictionary[infection_prob].append(size)
+
+    return [(infection_prob, np.average(sizes)) for infection_prob, sizes in dictionary.items()]
+
 
 def bad_node_of_dir(cache_dir):
     if "CS" in cache_dir:
@@ -144,7 +151,7 @@ def plot_si_prestige_size(cache_dirs):
         filtered = sorted(cache["size"].keys())[1::2]
         length_of_results = len(filtered)
 
-        colors = iter(cm.rainbow(np.linspace(0, 1, len(filtered))))
+        colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
         markers = Line2D.filled_markers; count = -1
         for p, data in sorted(results_size.items(), key=lambda x: x[0]):
             if p not in filtered:
@@ -321,14 +328,17 @@ def plot_sis_or_sir_prestige_length(cache_dirs, epidemic_type, ylim=(0,10)):
         for ratio, data in sorted(results_length.items(), key=lambda x: x[0]):
             if "%.1f" % ratio not in filtered:
                 continue
-            c = next(color); count += 1
+            c = next(colors); count += 1
             ax.scatter(*zip(*data), color=c, label='{0:.2f}'.format(ratio), marker=markers[count])
 
-            #regr = LinearRegression()
-            #regr.fit(x.reshape(-1, 1), y.reshape(-1, 1))
-            #interval = np.array([min(x), max(x)])
-            #ax.plot(interval, interval*regr.coef_[0] + regr.intercept_, color=c)
-            #ax.plot(*zip(*data), color=next(colors), label='p/r = {0:.2f}'.format(ratio), marker = 'o')
+            # fit a linear curve to this
+            x = np.array([pi for (pi, length) in data if not np.isnan(length) and not np.isinf(length)])
+            y = np.array([length for (pi, length) in data if not np.isnan(length) and not np.isinf(length)])
+
+            regr = LinearRegression()
+            regr.fit(x.reshape(-1, 1), y.reshape(-1, 1))
+            interval = np.array([min(x), max(x)])
+            ax.plot(interval, interval*regr.coef_[0] + regr.intercept_, color=c)
 
         ax.set_title(title)
         if i == 0:
@@ -370,16 +380,97 @@ def plot_random_hop_size(cache_dirs, epidemic_type):
             if p not in filtered:
                 continue
             c = next(colors); count += 1; m = markers[count]
-            ax.scatter(*zip(*data), color=c, label='p = {0:.2f}'.format(p), s=10, marker=m)
+            ax.scatter(*zip(*data), color=c, label='{0:.2f}'.format(p), s=10, marker=m)
+
+            if p > 0:
+                # fit a logistic curve to this
+                x = [pi for (pi, length) in data if not np.isnan(length) and not np.isinf(length)]
+                y = [length for (pi, length) in data if not np.isnan(length) and not np.isinf(length)]
+
+                popt, pcov = curve_fit(curve, np.array(x), np.array(y), bounds=(0., [1., 2., 200.]))
+                y = curve(x, *popt)
+
+                ax.plot(x, y, color=c)
 
         ax.set_title(title)
         if i == 0: 
             ax.set_xlabel(r'University Prestige (pi)')
             ax.set_ylabel(r'Epidemic Size')
         
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large', title=r"p")
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large', title=r"$j$")
     plt.ylim(0, 1)
     plt.savefig('results/test/size-results-of-ALL-{}-random-hops.png'.format(epidemic_type))
+
+# epidemic size versus infection probability for all institutions
+def plot_size_infection_probability(cache_dirs, threshold=0.00, bins=range(0, 100, 10)):
+    fig, axarray = plt.subplots(1, len(cache_dirs), figsize=(20,5), sharey=True)
+    for j, ax in enumerate(axarray):
+        (title, cache_dir) = cache_dirs[j]
+        cache = pickle.load(open(cache_dir, 'rb'))
+        meta = meta_of_dir(cache_dir)
+        graph = graph_of_dir(cache_dir)
+        results_size = defaultdict(list)
+
+        for p in cache["size"].keys():
+            for node, sizes in cache["size"][p].items():
+                if node is bad_node_of_dir(cache_dir):
+                    continue
+
+                pi = meta[node]["pi"]
+                avg = np.average(sizes)
+                if not np.isnan(avg) and not np.isinf(avg):
+                    result = (p, avg)
+                    results_size[pi].append(result)
+
+        # remove data below a threshold
+        for pi, data in results_size.copy().items():
+            trend = [size for _, size in data]
+            if max(trend) <= threshold:
+                del results_size[pi]
+            else:
+                results_size[pi] = sorted(data, key=lambda x: x[0])
+
+        # bin the remaining data
+        if type(bins) != None:
+            left_endpoint = bins[0]
+            percentiles = np.percentile(results_size.keys(), bins[1:])
+            bin_means = defaultdict(list)
+            for i, bin_edge in enumerate(percentiles):
+                bin_values = []
+                for pi in results_size.keys():
+                    if left_endpoint < pi <= bin_edge:
+                        bin_values.extend(results_size[pi])
+            
+                bin_means[(i+1)] = average_across_infection_probability(bin_values)
+                left_endpoint = bin_edge
+            results_size = bin_means
+
+        length_of_results = len(results_size.keys())
+
+        colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
+        for pi, data in sorted(results_size.items(), key=lambda x: x[0]):
+            data = sorted(data, key=lambda x: x[0])
+            c = next(colors)
+            ax.scatter(*zip(*data), color=c, label='{0:d}'.format(pi*10))
+
+            # fit a logistic curve to this
+            x = [p for (p, size) in data if not np.isnan(size) and not np.isinf(size)]
+            y = [size for (p, size) in data if not np.isnan(size) and not np.isinf(size)]
+
+            popt, pcov = curve_fit(curve, np.array(x), np.array(y))
+            y = curve(x, *popt)
+
+            ax.plot(x, y, color=c)
+
+
+        ax.set_title(title)
+        if j == 0:
+            plt.ylim(0, 1)
+            ax.set_xlabel(r'Infection Probability')
+            ax.set_ylabel(r'Epidemic Size')
+
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 12}, fontsize='large', title=r'$pi$')
+    plt.savefig('results/test/infectious/size-results-of-ALL-SI.png')
 
 # TODO: 3D plots
 #def plot_sir_or_sis(cache_dir):
@@ -449,7 +540,8 @@ def main():
     #plot_sis_or_sir_prestige_size(all_departments_SIS, "SIS", ylim=(0,0.2))
     #plot_centrality()
 
-    plot_random_hop_size(all_departments_SI_random_jump, "SI")
+    #plot_random_hop_size(all_departments_SI_random_jump, "SI")
+    plot_size_infection_probability(all_departments_SI)
 
 
 if __name__ == "__main__":
