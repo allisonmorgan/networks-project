@@ -107,7 +107,7 @@ def print_n_trials():
 def plot_centrality():
     colors = iter(cm.rainbow(np.linspace(0, 1, 3)))
     markers = Line2D.filled_markers
-    fig = plt.figure()
+    fig = plt.figure(figsize=(6.9,5.))
     ax = plt.gca()
 
     for i, (faculty_graph, school_metadata, dept) in enumerate([(g_cs, meta_cs, "Computer Science"), (g_busi, meta_busi, "Business"), (g_his, meta_his, "History")]):
@@ -120,18 +120,19 @@ def plot_centrality():
 
         ax.scatter(x, y, label=dept, color=next(colors), marker=markers[i])
 
-    plt.xlabel(r'University Prestige (pi)')
-    plt.ylabel(r'Closeness Centrality')
-    plt.legend(loc='upper right', prop={'size': 9}, fontsize='large')
+    plt.xlabel(r'University Prestige $\pi$', fontsize=16)
+    plt.ylabel(r'Closeness Centrality', fontsize=16)
+    plt.legend(loc='upper right', prop={'size': 12}, fontsize='large')
     plt.savefig("results/centrality.png")
     plt.clf()
 
 
 # epidemic size versus prestige for various infection probabilities p
 def plot_si_prestige_size(cache_dirs):
-    fig, axarray = plt.subplots(1, len(cache_dirs), figsize=(20,5), sharey=True)
+    fig, axarray = plt.subplots(1, len(cache_dirs), figsize=(6.9*2, 5.0), sharey=True)
     for i, ax in enumerate(axarray):
         (title, cache_dir) = cache_dirs[i]
+        print("title: {0}".format(title))
         cache = pickle.load(open(cache_dir, 'rb'))
         meta = meta_of_dir(cache_dir)
         graph = graph_of_dir(cache_dir)
@@ -165,23 +166,26 @@ def plot_si_prestige_size(cache_dirs):
                 y = [length for (pi, length) in data if not np.isnan(length) and not np.isinf(length)]
 
                 popt, pcov = curve_fit(curve, np.array(x), np.array(y), bounds=(0., [1., 2., 200.]))
+                print("infection probability: {0}\tcurve_fit: {1}".format(p, popt))
                 y = curve(x, *popt)
 
                 ax.plot(x, y, color=c)
 
-        ax.set_title(title)
+        ax.set_title(title, y=1.05, fontsize=16)
+        ax.tick_params(labelsize=12)
         if i == 0:
-            ax.set_xlabel(r'University Prestige (pi)')
-            ax.set_ylabel(r'Epidemic Size')
+            ax.set_xlabel(r'University Prestige $\pi$', fontsize=16)
+            ax.set_ylabel(r'Epidemic Size', fontsize=16)
 
     plt.ylim(0, 1)
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 12}, fontsize='large', title=r'$p$')
     plt.savefig('results/test/size-results-of-ALL-SI.png')
 
 def plot_si_prestige_length(cache_dirs):
-    fig, axarray = plt.subplots(1, len(cache_dirs), figsize=(20,5), sharey=True)
+    fig, axarray = plt.subplots(1, len(cache_dirs), figsize=(6.9*2, 5.0), sharey=True)
     for i, ax in enumerate(axarray):
         (title, cache_dir) = cache_dirs[i]
+        print("title: {0}".format(title))
         cache = pickle.load(open(cache_dir, 'rb'))
         meta = meta_of_dir(cache_dir)
         graph = graph_of_dir(cache_dir)
@@ -224,21 +228,24 @@ def plot_si_prestige_length(cache_dirs):
             regr = LinearRegression()
             regr.fit(x.reshape(-1, 1), y.reshape(-1, 1))
             interval = np.array([min(x), max(x)])
+            print("infection probability: {0}\tcurve_fit: {1}".format(p, [regr.coef_[0], regr.intercept_]))
             ax.plot(interval, interval*regr.coef_[0] + regr.intercept_, color=c)
 
-        ax.set_title(title)
+        ax.set_title(title, y=1.05, fontsize=16)
+        ax.tick_params(labelsize=12)
         if i == 0:
-            ax.set_xlabel(r'University Prestige (pi)')
-            ax.set_ylabel(r'Normalized Epidemic Length')
+            ax.set_xlabel(r'University Prestige $\pi$', fontsize=16)
+            ax.set_ylabel(r'Epidemic Size', fontsize=16)
 
     plt.ylim(0, 6)
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 12}, fontsize='large', title=r'$p$')
     plt.savefig('results/test/length-results-of-ALL-SI.png')
 
 def plot_sis_or_sir_prestige_size(cache_dirs, epidemic_type, ylim=(0,1)):
-    fig, axarray = plt.subplots(1, len(cache_dirs), figsize=(20,5), sharey=True)
+    fig, axarray = plt.subplots(1, len(cache_dirs), figsize=(6.9*2, 5.0), sharey=True)
     for i, ax in enumerate(axarray):
         (title, cache_dir) = cache_dirs[i]
+        print("title: {0}".format(title))
         cache = pickle.load(open(cache_dir, 'rb'))
         meta = meta_of_dir(cache_dir)
         graph = graph_of_dir(cache_dir)
@@ -278,25 +285,28 @@ def plot_sis_or_sir_prestige_size(cache_dirs, epidemic_type, ylim=(0,1)):
                 y = [length for (pi, length) in data if not np.isnan(length) and not np.isinf(length)]
 
                 popt, pcov = curve_fit(curve, np.array(x), np.array(y), bounds=(0., [1., 2., 200.]))
+                print("infection probability: {0}\tcurve_fit: {1}".format(ratio, popt))
                 y = curve(x, *popt)
 
                 ax.plot(x, y, color=c)
             #ax.plot(*zip(*data), color=next(colors), label='p/r = {0:.2f}'.format(ratio), marker = 'o')
 
-        ax.set_title(title)
+        ax.set_title(title, y=1.05, fontsize=16)
+        ax.tick_params(labelsize=12)
         if i == 0:
-            ax.set_xlabel('University Prestige (pi)')
-            ax.set_ylabel('Epidemic Size')
+            ax.set_xlabel(r'University Prestige $\pi$', fontsize=16)
+            ax.set_ylabel(r'Epidemic Size', fontsize=16)
 
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large', title=r'$p/r$')
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 12}, fontsize='large', title=r'$p/r$')
     plt.ylim(ylim)
     plt.savefig('results/test/size-results-of-ALL-{}.png'.format(epidemic_type))
     plt.clf()
 
 def plot_sis_or_sir_prestige_length(cache_dirs, epidemic_type, ylim=(0,10)):
-    fig, axarray = plt.subplots(1, len(cache_dirs), figsize=(20,5), sharey=True)
+    fig, axarray = plt.subplots(1, len(cache_dirs), figsize=(6.9*2, 5.0), sharey=True)
     for i, ax in enumerate(axarray):
         (title, cache_dir) = cache_dirs[i]
+        print("title: {0}".format(title))
         cache = pickle.load(open(cache_dir, 'rb'))
         meta = meta_of_dir(cache_dir)
         graph = graph_of_dir(cache_dir)
@@ -338,14 +348,16 @@ def plot_sis_or_sir_prestige_length(cache_dirs, epidemic_type, ylim=(0,10)):
             regr = LinearRegression()
             regr.fit(x.reshape(-1, 1), y.reshape(-1, 1))
             interval = np.array([min(x), max(x)])
+            print("infection probability: {0}\tcurve_fit: {1}".format(ratio, [regr.coef_[0], regr.intercept_]))
             ax.plot(interval, interval*regr.coef_[0] + regr.intercept_, color=c)
 
-        ax.set_title(title)
+        ax.set_title(title, y=1.05, fontsize=16)
+        ax.tick_params(labelsize=12)
         if i == 0:
-            ax.set_xlabel('University Prestige (pi)')
-            ax.set_ylabel('Normalized Epidemic Length')
+            ax.set_xlabel(r'University Prestige $\pi$', fontsize=16)
+            ax.set_ylabel(r'Normalized Epidemic Length', fontsize=16)
 
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 9}, fontsize='large', title=r'$p/r$')
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 12}, fontsize='large', title=r'$p/r$')
     plt.ylim(ylim)
     plt.savefig('results/test/length-results-of-ALL-{0}.png'.format(epidemic_type))
     plt.clf()
@@ -355,6 +367,7 @@ def plot_random_hop_size(cache_dirs, epidemic_type):
     fig, axarray = plt.subplots(1, len(cache_dirs), figsize=(20,5), sharey=True)
     for i, ax in enumerate(axarray):
         (title, cache_dir) = cache_dirs[i]
+        print("title: {0}".format(title))
         cache = pickle.load(open(cache_dir, 'rb'))
         meta = meta_of_dir(cache_dir)
         graph = graph_of_dir(cache_dir)
@@ -402,10 +415,11 @@ def plot_random_hop_size(cache_dirs, epidemic_type):
     plt.savefig('results/test/size-results-of-ALL-{}-random-hops.png'.format(epidemic_type))
 
 # epidemic size versus infection probability for all institutions
-def plot_size_infection_probability(cache_dirs, threshold=0.00, bins=range(0, 100, 10)):
-    fig, axarray = plt.subplots(1, len(cache_dirs), figsize=(20,5), sharey=True)
+def plot_size_infection_probability(cache_dirs, threshold=0.00, bins=range(0, 100, 10), average=False):
+    fig, axarray = plt.subplots(1, len(cache_dirs), figsize=(6.9*2, 5.0), sharey=True)
     for j, ax in enumerate(axarray):
         (title, cache_dir) = cache_dirs[j]
+        print("title: {0}".format(title))
         cache = pickle.load(open(cache_dir, 'rb'))
         meta = meta_of_dir(cache_dir)
         graph = graph_of_dir(cache_dir)
@@ -431,7 +445,7 @@ def plot_size_infection_probability(cache_dirs, threshold=0.00, bins=range(0, 10
                 results_size[pi] = sorted(data, key=lambda x: x[0])
 
         # bin the remaining data
-        if type(bins) != None:
+        if bins != None:
             left_endpoint = bins[0]
             percentiles = np.percentile(results_size.keys(), bins[1:])
             bin_means = defaultdict(list)
@@ -445,31 +459,46 @@ def plot_size_infection_probability(cache_dirs, threshold=0.00, bins=range(0, 10
                 left_endpoint = bin_edge
             results_size = bin_means
 
+        # find average trend over all prestige levels
+        if average:
+            # data should look like averages[1] = [(infection_prob, epidemic size), ... ]
+            averages = defaultdict(list)
+            for pi, data in results_size.items():
+                for x, y in data:
+                    averages[x].append(y)
+
+            results_size = defaultdict(list)
+            for p, sizes in averages.items():
+                results_size[1].append((p, np.average(sizes)))
+
         length_of_results = len(results_size.keys())
 
         colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
         for pi, data in sorted(results_size.items(), key=lambda x: x[0]):
             data = sorted(data, key=lambda x: x[0])
             c = next(colors)
-            ax.scatter(*zip(*data), color=c, label='{0:d}'.format(pi*10))
+            ax.scatter(*zip(*data), color=c, label='{0:f}'.format(pi*10))
 
             # fit a logistic curve to this
-            x = [p for (p, size) in data if not np.isnan(size) and not np.isinf(size)]
-            y = [size for (p, size) in data if not np.isnan(size) and not np.isinf(size)]
+            if not average:
+                x = [p for (p, size) in data if not np.isnan(size) and not np.isinf(size)]
+                y = [size for (p, size) in data if not np.isnan(size) and not np.isinf(size)]
 
-            popt, pcov = curve_fit(curve, np.array(x), np.array(y))
-            y = curve(x, *popt)
+                popt, pcov = curve_fit(curve, np.array(x), np.array(y), bounds=([0., -150., -5.], [1., 0., 5.]))
+                y = curve(x, *popt)
+                print("prestige: {0}\tcurve_fit: {1}".format(pi, popt))
+                ax.plot(x, y, color=c)
 
-            ax.plot(x, y, color=c)
 
-
-        ax.set_title(title)
+        ax.set_title(title, y=1.05, fontsize=16)
+        ax.tick_params(labelsize=12)
         if j == 0:
-            plt.ylim(0, 1)
-            ax.set_xlabel(r'Infection Probability')
-            ax.set_ylabel(r'Epidemic Size')
+            plt.ylim(0, 1.)
+            ax.set_xlabel(r'Infection Probability', fontsize=16)
+            ax.set_ylabel(r'Epidemic Size', fontsize=16)
 
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 12}, fontsize='large', title=r'$pi$')
+    if bins != None:
+        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 12}, fontsize='large', title=r'$\pi$')
     plt.savefig('results/test/infectious/size-results-of-ALL-SI.png')
 
 # TODO: 3D plots
@@ -529,15 +558,21 @@ def plot_size_infection_probability(cache_dirs, threshold=0.00, bins=range(0, 10
 def main():
 
     #plot_si_prestige_size(all_departments_SI)
+    #print("SI Size Done")
     #plot_si_prestige_length(all_departments_SI)
+    #print("SI Length Done")
 
-    #plot_sis_or_sir_prestige_length(all_departments_SIR, "SIR")
+    #plot_sis_or_sir_prestige_length(all_departments_SIR, "SIR", ylim=(0,4))
+    #print("SIR Length Done")
     #plot_sis_or_sir_prestige_size(all_departments_SIR, "SIR")
+    #print("SIR Size Done")
 
     #plot_sis_or_sir_prestige_length(all_departments_SIR, "SIR", ylim=(0, 5))
-    #plot_sis_or_sir_prestige_length(all_departments_SIS, "SIS", ylim=(0, 60))
+    #plot_sis_or_sir_prestige_length(all_departments_SIS, "SIS", ylim=(0, 80))
+    #print("SIS Length Done")
     #plot_sis_or_sir_prestige_size(all_departments_SIR, "SIR", ylim=(0,1.0))
     #plot_sis_or_sir_prestige_size(all_departments_SIS, "SIS", ylim=(0,0.2))
+    #print("SIS Size Done")
     #plot_centrality()
 
     #plot_random_hop_size(all_departments_SI_random_jump, "SI")
