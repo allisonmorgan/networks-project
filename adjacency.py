@@ -10,7 +10,7 @@ from importhistory import school_metadata as meta_his, faculty_graph as g_his
 from importbusiness import school_metadata as meta_busi, faculty_graph as g_busi
 
 def main():
-  fig, axarray = plt.subplots(1, 3, figsize=(12,5))
+  fig, axarray = plt.subplots(1, 3, figsize=(6.9*2, 5))
   #fig = plt.figure(figsize=(15,10))
 
   for l, (g, title) in enumerate([(g_busi, "Business"), (g_cs, "Computer Science"), (g_his, "History")]):
@@ -43,14 +43,15 @@ def main():
     axarray[l].xaxis.set_major_locator(ticker.MultipleLocator(1))
     axarray[l].yaxis.set_major_locator(ticker.MultipleLocator(1))
 
-    axarray[l].set_xticklabels(groups)
-    axarray[l].set_yticklabels(groups)
+    axarray[l].set_xticklabels(groups, fontsize=12)
+    axarray[l].set_yticklabels(groups, fontsize=12)
 
     if l == 0:
-      axarray[l].set_ylabel("PhD Granting Institution")
-      axarray[l].set_xlabel("Faculty Placement Institution")
+      axarray[l].set_ylabel("PhD Granting Institution", fontsize=16)
+      axarray[l].set_xlabel("Faculty Placement Institution", fontsize=16)
+      axarray[l].xaxis.set_label_coords(0.5, -.10)
 
-    axarray[l].set_title(title, y=1.15)
+    axarray[l].set_title(title, y=1.15, fontsize=16)
 
   #fig.colorbar(cax)
 
