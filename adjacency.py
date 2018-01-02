@@ -8,12 +8,13 @@ import numpy as np
 from importcompsci import school_metadata as meta_cs, faculty_graph as g_cs
 from importhistory import school_metadata as meta_his, faculty_graph as g_his
 from importbusiness import school_metadata as meta_busi, faculty_graph as g_busi
+import plot_utils
 
 def main():
-  fig, axarray = plt.subplots(1, 3, figsize=(6.9*2, 5))
+  fig, ax = plt.subplots(1, 1, figsize=(6, 4))
   #fig = plt.figure(figsize=(15,10))
 
-  for l, (g, title) in enumerate([(g_busi, "Business"), (g_cs, "Computer Science"), (g_his, "History")]):
+  for l, (g, title) in enumerate([(g_cs, "Computer Science")]):
     # Vertices are ordered by prestige in the dataset
     adj = nx.to_numpy_matrix(g, dtype=int)
 
@@ -38,24 +39,37 @@ def main():
           break
 
     #ax = fig.add_subplot(111)
-    cax = axarray[l].matshow(grouped, cmap=cm.gray_r)
+    from matplotlib.colors import LinearSegmentedColormap, ListedColormap
+    colors = iter(cm.rainbow(np.linspace(0, 1, 3)))
+    #print(colors, next(colors))
+    r,g,b = next(colors)[:3]  # Unpack RGB vals (0. to 1., not 0 to 255).
+    cdict = {'red':   ((0.0,  1.0, 1.0),
+                   (1.0,  r, r)),
+         'green': ((0.0,  1.0, 1.0),
+                   (1.0,  g, g)),
+         'blue':  ((0.0,  1.0, 1.0),
+                   (1.0,  b, b))}
+    custom_cmap = LinearSegmentedColormap('custom_cmap', cdict)
+    cax = ax.matshow(grouped, cmap=custom_cmap)
 
-    axarray[l].xaxis.set_major_locator(ticker.MultipleLocator(1))
-    axarray[l].yaxis.set_major_locator(ticker.MultipleLocator(1))
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
+    ax.yaxis.set_major_locator(ticker.MultipleLocator(1))
 
-    axarray[l].set_xticklabels(groups, fontsize=12)
-    axarray[l].set_yticklabels(groups, fontsize=12)
+    ax.set_xticklabels(groups, fontsize=12)
+    ax.set_yticklabels(groups, fontsize=12)
 
     if l == 0:
-      axarray[l].set_ylabel("PhD Granting Institution", fontsize=16)
-      axarray[l].set_xlabel("Faculty Placement Institution", fontsize=16)
-      axarray[l].xaxis.set_label_coords(0.5, -.10)
+      ax.set_ylabel(r"Prestige of PhD Institution ($\pi$)", fontsize=16)
+      ax.set_xlabel(r"Prestige of Hiring Institution ($\pi$)", fontsize=16)
+      #ax.xaxis.set_label_coords(0.5, -.10)
 
-    axarray[l].set_title(title, y=1.15, fontsize=16)
+    #ax.set_title(title, y=1.15, fontsize=16)
+  
+  plot_utils.finalize(ax)
 
   #fig.colorbar(cax)
-
-  plt.savefig("results/grouped_adjacency.png")
+  plt.tight_layout()
+  plt.savefig("results/grouped_adjacency.eps", format='eps', dpi=1000) #bbox_inches='tight')
 
 if __name__ == "__main__":
     main()

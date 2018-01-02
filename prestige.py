@@ -1,0 +1,87 @@
+from collections import defaultdict, OrderedDict
+from scipy.stats import pearsonr
+from importcompsci import school_metadata as meta_cs, faculty_graph as g_cs, faculty_graph_weighted as gw_cs
+
+import networkx as nx
+import numpy as np
+import pandas as pd
+import pickle
+import statsmodels.api as sm
+
+DIR_CS_SI = "cache_2/CS_SI.p"
+
+def graph_of_dir(directory):
+    if "CS" in directory:
+        if "weighted" in directory:
+            return gw_cs
+        return g_cs
+
+def meta_of_dir(directory):
+    if "CS" in directory:
+        return meta_cs
+
+# remove the node denoting "other"
+def bad_node_of_dir(cache_dir):
+    if "CS" in cache_dir:
+        return 206
+
+def pearson_correlation(cache_dirs, value=0.1):
+    (title, cache_dir) = cache_dirs
+    print("title: {0}".format(title))
+    
+    # load up all the data
+    cache = pickle.load(open(cache_dir, 'rb'))
+    meta = meta_of_dir(cache_dir)
+    graph = graph_of_dir(cache_dir)
+    
+    # average across all infection probabilities and prestige values
+    results_size = defaultdict(list)
+    for p in cache["size"].keys():
+        for node, sizes in cache["size"][p].items():
+            if node is bad_node_of_dir(cache_dir):
+                continue
+
+            avg = np.average(sizes)
+            if not np.isnan(avg) and not np.isinf(avg):
+                result = (meta[node]["pi"], avg)
+                results_size[p].append(result)
+
+        results_size[p] = sorted(results_size[p], key=lambda x: x[0])
+
+    # other (non-prestige) parameters
+    ind = OrderedDict(sorted(nx.in_degree_centrality(graph).items()))
+    outd = OrderedDict(sorted(nx.out_degree_centrality(graph).items()))
+    d = OrderedDict(sorted(nx.degree_centrality(graph).items()))
+    close = OrderedDict(sorted(nx.closeness_centrality(graph).items()))
+    parameters = {
+        "in_degree": [v for i, v in ind.iteritems()], 
+        "out_degree": [v for i, v in outd.iteritems()],
+        "degree": [v for i, v in d.iteritems()],
+        "closeness_centrality": [v for i, v in close.iteritems()]}
+
+    filtered = sorted(cache["size"].keys())
+    length_of_results = len(filtered)
+    
+    # generate table of correlations
+    tab = {}
+    for p, data in sorted(results_size.items(), key=lambda x: x[0]):
+        # condition on a particular infection probability
+        if p == value:
+            x, y = zip(*data)
+            coef, p = pearsonr(x, y)
+            tab["prestige"] = {"coefficient": coef, "p-value": p}
+            # consider the other network measures
+            for key, parameter in parameters.items():
+                coef, p = pearsonr(parameter, y)
+                tab[key] = {"coefficient": coef, "p-value": p}
+            
+            break
+    
+    return pd.DataFrame(data=tab)
+        
+
+def main():
+    print pearson_correlation(("Computer Science", DIR_CS_SI))
+
+if __name__ == "__main__":
+    main()

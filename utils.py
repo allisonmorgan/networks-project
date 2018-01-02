@@ -12,7 +12,7 @@ import numpy as np
 def avg_geodesic_path_length_from(from_node, graph):
     assert(from_node in graph.nodes())
     geodesic_path_lengths = [nx.shortest_path_length(graph, source=from_node, target=target)
-                             for target in graph.nodes_iter()
+                             for target in graph.nodes()
                              if target is not from_node
                              and nx.has_path(graph, from_node, target)]
     return np.average(geodesic_path_lengths)
