@@ -35,8 +35,8 @@ def pearson_correlation(cache_dirs, value=0.1):
     graph = graph_of_dir(cache_dir)
     weighted_graph = nx.DiGraph()
     for u, v, data in graph.edges(data=True):
-        if weighted_graph.has_edge(u,v): weighted_graph[u][v]['weight'] += 1.0
-        else: weighted_graph.add_edge(u, v, weight = 1.0)
+        if weighted_graph.has_edge(v, u): weighted_graph[v][u]['weight'] += 1.0
+        else: weighted_graph.add_edge(v, u, weight = 1.0)
     
     # average across all infection probabilities and prestige values
     results_size = defaultdict(list)
