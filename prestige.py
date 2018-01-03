@@ -33,6 +33,10 @@ def pearson_correlation(cache_dirs, value=0.1):
     cache = pickle.load(open(cache_dir, 'rb'))
     meta = meta_of_dir(cache_dir)
     graph = graph_of_dir(cache_dir)
+    weighted_graph = nx.Graph()
+    for u, v, data in graph.edges(data=True):
+        if weighted_graph.has_edge(u,v): weighted_graph[u][v]['weight'] += 1.0
+        else: weighted_graph.add_edge(u, v, weight = 1.0)
     
     # average across all infection probabilities and prestige values
     results_size = defaultdict(list)
@@ -53,11 +57,13 @@ def pearson_correlation(cache_dirs, value=0.1):
     outd = OrderedDict(sorted(nx.out_degree_centrality(graph).items()))
     d = OrderedDict(sorted(nx.degree_centrality(graph).items()))
     close = OrderedDict(sorted(nx.closeness_centrality(graph).items()))
+    eigen = OrderedDict(sorted(nx.eigenvector_centrality(weighted_graph, weight='weight').items()))
     parameters = {
         "in_degree": [v for i, v in ind.iteritems()], 
         "out_degree": [v for i, v in outd.iteritems()],
         "degree": [v for i, v in d.iteritems()],
-        "closeness_centrality": [v for i, v in close.iteritems()]}
+        "closeness": [v for i, v in close.iteritems()],
+        "eigenvector": [v for i, v in eigen.iteritems()]}
 
     filtered = sorted(cache["size"].keys())
     length_of_results = len(filtered)
