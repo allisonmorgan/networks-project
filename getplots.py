@@ -22,22 +22,22 @@ import plot_utils
 DIR_CS_SI = "cache_2/CS_SI.p"
 DIR_HIS_SI = "cache_2/HIS_SI.p"
 DIR_BUSI_SI = "cache_2/BUSI_SI.p"
-DIR_CS_SIR = "cache_2/CS_SIR.p"
-DIR_HIS_SIR = "cache_2/HIS_SIR.p"
-DIR_BUSI_SIR = "cache_2/BUSI_SIR.p"
-DIR_CS_SIS = "cache_2/CS_SIS.p"
-DIR_HIS_SIS = "cache_2/HIS_SIS.p"
-DIR_BUSI_SIS = "cache_2/BUSI_SIS.p"
+DIR_CS_SIR = "cache/CS_SIR.p"
+DIR_HIS_SIR = "cache/HIS_SIR.p"
+DIR_BUSI_SIR = "cache/BUSI_SIR.p"
+DIR_CS_SIS = "cache/CS_SIS.p"
+DIR_HIS_SIS = "cache/HIS_SIS.p"
+DIR_BUSI_SIS = "cache/BUSI_SIS.p"
 
-DIR_CS_SI_JUMP_PROBABILITY = "cache_2/random_hops/jump_probability/CS_SI.p"
-DIR_HIS_SI_JUMP_PROBABILITY = "cache_2/random_hops/jump_probability/HIS_SI.p"
-DIR_BUSI_SI_JUMP_PROBABILITY = "cache_2/random_hops/jump_probability/BUSI_SI.p"
-DIR_CS_SIR_JUMP_PROBABILITY = "cache_2/random_hops/jump_probability/CS_SIR.p"
-DIR_HIS_SIR_JUMP_PROBABILITY = "cache_2/random_hops/jump_probability/HIS_SIR.p"
-DIR_BUSI_SIR_JUMP_PROBABILITY = "cache_2/random_hops/jump_probability/BUSI_SIR.p"
-DIR_CS_SIS_JUMP_PROBABILITY = "cache_2/random_hops/jump_probability/CS_SIS.p"
-DIR_HIS_SIS_JUMP_PROBABILITY = "cache_2/random_hops/jump_probability/HIS_SIS.p"
-DIR_BUSI_SIS_JUMP_PROBABILITY = "cache_2/random_hops/jump_probability/BUSI_SIS.p"
+DIR_CS_SI_JUMP_PROBABILITY = "cache/random_hops/jump_probability/CS_SI.p"
+DIR_HIS_SI_JUMP_PROBABILITY = "cache/random_hops/jump_probability/HIS_SI.p"
+DIR_BUSI_SI_JUMP_PROBABILITY = "cache/random_hops/jump_probability/BUSI_SI.p"
+DIR_CS_SIR_JUMP_PROBABILITY = "cache/random_hops/jump_probability/CS_SIR.p"
+DIR_HIS_SIR_JUMP_PROBABILITY = "cache/random_hops/jump_probability/HIS_SIR.p"
+DIR_BUSI_SIR_JUMP_PROBABILITY = "cache/random_hops/jump_probability/BUSI_SIR.p"
+DIR_CS_SIS_JUMP_PROBABILITY = "cache/random_hops/jump_probability/CS_SIS.p"
+DIR_HIS_SIS_JUMP_PROBABILITY = "cache/random_hops/jump_probability/HIS_SIS.p"
+DIR_BUSI_SIS_JUMP_PROBABILITY = "cache/random_hops/jump_probability/BUSI_SIS.p"
 
 dirs = [DIR_CS_SI, DIR_HIS_SI, DIR_BUSI_SI, DIR_CS_SIR, DIR_HIS_SIR, DIR_BUSI_SIR, DIR_CS_SIS, DIR_HIS_SIS, DIR_BUSI_SIS]
 
@@ -158,7 +158,7 @@ def plot_centrality():
        	plt.plot([0, max(x)], [slope*i + intercept for i in [0, max(x)]], color=plot_utils.ALMOST_BLACK, label='Slope: %.4f\n$R^{2}$: %.4f' % (slope, r_value**2))
 
     plt.xlabel(r'Universities Sorted by Prestige, $\pi$', fontsize=plot_utils.LABEL_SIZE)
-    plt.ylabel(r'Average Path Length, $\langle \ell \rangle$', fontsize=plot_utils.LABEL_SIZE)
+    plt.ylabel(r'Average Path Length, $\langle \mathcal{l} \rangle$', fontsize=plot_utils.LABEL_SIZE)
     plot_utils.finalize(ax)
     plt.xlim(0, max_pi)
     plt.ylim(1, max_c)
@@ -303,7 +303,7 @@ def plot_si_prestige_length(cache_dirs, ylim=(0,5)):
     #ax.set_title(title, y=1.05, fontsize=16)
     ax.tick_params(labelsize=12)
     ax.set_xlabel(r'University Prestige, $\pi$', fontsize=plot_utils.LABEL_SIZE)
-    ax.set_ylabel(r'Normalized Epidemic Length, $\frac{L}{\mathfrak{l}}$', fontsize=plot_utils.LABEL_SIZE)
+    ax.set_ylabel(r'Normalized Epidemic Length, $\frac{L}{\mathcal{l}}$', fontsize=plot_utils.LABEL_SIZE)
     plot_utils.finalize(ax)
 
     plt.ylim(ylim)
@@ -549,38 +549,45 @@ def plot_size_infection_probability(cache_dirs, threshold=0.00, bins=range(0, 10
     length_of_results = len(results_size.keys())
 
     colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
-    rows = []
     for pi, data in sorted(results_size.items(), key=lambda x: x[0]):
-        for p, s in data:
-            rows.append({"decile": pi*10, "infection_prob": p, "size": s})
         data = sorted(data, key=lambda x: x[0])
         c = next(colors)
-        # if pi == 1 or pi == 5:
-        #     print("\nPi: {0}".format(pi*10))
-        #     for each in data:
-        #         print(each)
-        ax.scatter(*zip(*data), color=c, label='{0}'.format(int(pi*10)), edgecolor='w', clip_on=False, zorder=1, s=28)
+
+        r = -2.7; k = 0.91;
+        def scale_x(x, d): return (1.0*x) / (-1.0*math.log(1.0-d))
+        x = []; y = [];
+        for x_i, y_i in data:
+            if scale_x(x_i, pi*(1.0/10.0)) > 0:
+                x.append(scale_x(x_i, pi*(1.0/10.0)))
+                #y.append(scale_y(x_i, pi*(1.0/10.0), r, k))
+                y.append(y_i)
+
+        ax.scatter(x, y, color=c, label='{0}st Decile'.format(int(pi)), edgecolor='w', clip_on=False, zorder=1, s=28)
 
         # fit a logistic curve to this
-        x = [p for (p, size) in data if not np.isnan(size) and not np.isinf(size)]
-        y = [size for (p, size) in data if not np.isnan(size) and not np.isinf(size)]
-        popt, pcov = curve_fit(curve, np.array(x), np.array(y), bounds=([0., -150., -5.], [1., 0., 5.]))
-        x_fine = np.arange(0.0, 1.01, 0.01)
-        y = curve(x_fine, *popt)
-        # print("prestige: {0}\tcurve_fit: {1}".format(pi, popt))
-        ax.plot(x_fine, y, color=c)
+        # x = [p for (p, size) in data if not np.isnan(size) and not np.isinf(size)]
+        # y = [size for (p, size) in data if not np.isnan(size) and not np.isinf(size)]
+        # popt, pcov = curve_fit(curve, np.array(x), np.array(y), bounds=([0., -150., -5.], [1., 0., 5.]))
+        # x_fine = np.arange(0.0, 1.01, 0.01)
+        # y = curve(x_fine, *popt)
+        # # print("prestige: {0}\tcurve_fit: {1}".format(pi, popt))
+        # ax.plot(x_fine, y, color=c)
+
+    # fit a curve to the whole thing!
+    def scale_y(scaled_x): return (1.0 / (1.0 + math.exp(r*(k + math.log(scaled_x)))))
+    x_total = np.arange(0.01, 10.01, 0.01)
+    ax.plot(x_total, [scale_y(i) for i in x_total], color='black', label="Universal")
 
     #ax.set_title(title, y=1.05, fontsize=16)
     ax.tick_params(labelsize=12)
 
     plt.ylim(0, 1.)
-    plt.xlim(0, 1.)
-    ax.set_xlabel(r'Infection Probability, $p$', fontsize=plot_utils.LABEL_SIZE)
+    ax.set_xscale("log")
+    ax.set_xlabel(r'Effective Infection Probability, $p^{*}$', fontsize=plot_utils.LABEL_SIZE)
     ax.set_ylabel(r'Epidemic Size, $\frac{S}{N}$', fontsize=plot_utils.LABEL_SIZE)
     plot_utils.finalize(ax)
 
-    if bins != None:
-        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=plot_utils.LEGEND_SIZE, title='Prestige\nDecile', scatterpoints=1, frameon=False)
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=plot_utils.LEGEND_SIZE, scatterpoints=1, frameon=False)
     plt.savefig('results/infectious-size-results-of-ALL-SI.eps', bbox_inches='tight', format='eps', dpi=1000)
 
 # TODO: 3D plots
@@ -654,8 +661,13 @@ def main():
     plot_random_hop_size(all_departments_SI_random_jump[1], "SI", ylim=(0,1))
     plot_size_infection_probability(all_departments_SI[1])
     
-    #for (title, cache_dir) in all_departments_SI_random_jump:
-    #    print("title: {0}\tnumber of SI trials: {1}".format(title, n_trials_of_dir(cache_dir)))
+    print "SI"
+    for (title, cache_dir) in all_departments_SI:
+        print("Title: {0},\tNumber of trials: {1}".format(title, n_trials_of_dir(cache_dir)))
+
+    print "SI + RANDOM HOP"
+    for (title, cache_dir) in all_departments_SI_random_jump:
+        print("Title: {0},\tNumber of trials: {1}".format(title, n_trials_of_dir(cache_dir)))
 
     #for (title, cache_dir) in all_departments_SIR_random_jump:
     #    print("title: {0}\tnumber of SIR trials: {1}".format(title, n_trials_of_dir(cache_dir)))
