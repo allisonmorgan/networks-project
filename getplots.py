@@ -562,7 +562,14 @@ def plot_size_infection_probability(cache_dirs, threshold=0.00, bins=range(0, 10
                 #y.append(scale_y(x_i, pi*(1.0/10.0), r, k))
                 y.append(y_i)
 
-        ax.scatter(x, y, color=c, label='{0}st Decile'.format(int(pi)), edgecolor='w', clip_on=False, zorder=1, s=28)
+        if pi in [1]:
+            ax.scatter(x, y, color=c, label='{0}st Decile'.format(int(pi)), edgecolor='w', clip_on=False, zorder=1, s=28)
+        elif pi in [2]:
+            ax.scatter(x, y, color=c, label='{0}nd Decile'.format(int(pi)), edgecolor='w', clip_on=False, zorder=1, s=28)
+        elif pi in [3]:
+            ax.scatter(x, y, color=c, label='{0}rd Decile'.format(int(pi)), edgecolor='w', clip_on=False, zorder=1, s=28)
+        elif pi in [4, 5, 6, 7, 8, 9]:
+            ax.scatter(x, y, color=c, label='{0}th Decile'.format(int(pi)), edgecolor='w', clip_on=False, zorder=1, s=28)
 
         # fit a logistic curve to this
         # x = [p for (p, size) in data if not np.isnan(size) and not np.isinf(size)]
@@ -583,6 +590,7 @@ def plot_size_infection_probability(cache_dirs, threshold=0.00, bins=range(0, 10
 
     plt.ylim(0, 1.)
     ax.set_xscale("log")
+    plt.xlim(0.04, 10)
     ax.set_xlabel(r'Effective Infection Probability, $p^{*}$', fontsize=plot_utils.LABEL_SIZE)
     ax.set_ylabel(r'Epidemic Size, $\frac{S}{N}$', fontsize=plot_utils.LABEL_SIZE)
     plot_utils.finalize(ax)
