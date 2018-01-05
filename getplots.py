@@ -2,12 +2,14 @@ from collections import defaultdict
 from sklearn.linear_model import LinearRegression
 from matplotlib.lines import Line2D
 from scipy.optimize import curve_fit
+from scipy.stats import linregress
 import math
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import networkx as nx
 import numpy as np
 import pickle
+import csv
 import statsmodels.api as sm
 
 from importcompsci import school_metadata as meta_cs, faculty_graph as g_cs, faculty_graph_weighted as gw_cs
@@ -149,16 +151,16 @@ def plot_centrality():
 
         ax.scatter(x, y, edgecolor='w', clip_on=False, zorder=1, color=next(colors), s=28) #marker=markers[i])
 
-        par = np.polyfit(x, y, 1, full=True)
+        # par = np.polyfit(x, y, 1, full=True)
+        # slope=par[0][0]
+        # intercept=par[0][1]
+        slope, intercept, r_value, p_value, std_err = linregress(x, y)
+       	plt.plot([0, max(x)], [slope*i + intercept for i in [0, max(x)]], color=plot_utils.ALMOST_BLACK, label='Slope: %.4f\n$R^{2}$: %.4f' % (slope, r_value**2))
 
-        slope=par[0][0]
-        intercept=par[0][1]
-       	plt.plot(x, np.poly1d(np.polyfit(x, y, 1))(x), color=plot_utils.ALMOST_BLACK, label="Slope: %.4f" % slope)
-
-    plt.xlabel(r'Universities Sorted by Prestige ($\pi$)', fontsize=plot_utils.LABEL_SIZE)
-    plt.ylabel(r'Average Path Length $\left(\langle l \rangle\right)$', fontsize=plot_utils.LABEL_SIZE)
+    plt.xlabel(r'Universities Sorted by Prestige, $\pi$', fontsize=plot_utils.LABEL_SIZE)
+    plt.ylabel(r'Average Path Length, $\langle \ell \rangle$', fontsize=plot_utils.LABEL_SIZE)
     plot_utils.finalize(ax)
-    plt.xlim(1, max_pi)
+    plt.xlim(0, max_pi)
     plt.ylim(1, max_c)
     plt.legend(loc='upper left', fontsize=plot_utils.LEGEND_SIZE, frameon=False)
     #plt.tight_layout()
@@ -188,14 +190,12 @@ def plot_si_prestige_size(cache_dirs):
 
         results_size[p] = sorted(results_size[p], key=lambda x: x[0])
 
-    filtered = sorted(cache["size"].keys())#[1::2]
+    filtered = sorted(cache["size"].keys())[1::2]
     length_of_results = len(filtered)
 
     colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
     markers = Line2D.filled_markers; count = -1
     for p, data in sorted(results_size.items(), key=lambda x: x[0]):
-        if p == 0.1:
-            print("Infection probability: {0}\n".format(p))
         if p not in filtered:
             continue
         c = next(colors); count += 1; m = markers[count]
@@ -208,18 +208,18 @@ def plot_si_prestige_size(cache_dirs):
             diffs = []
             for (i, row) in enumerate(data):
                 if i in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]:#[50, 100]:#[5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]:
-                    print(i, prev, row)
+                    #print(i, prev, row)
                     diffs.append(prev*100.0-row[1]*100.0)
-                    print(float(prev-row[1])*100.0/float(row[1]), prev*100.0-row[1]*100.0)
+                    #print(float(prev-row[1])*100.0/float(row[1]), prev*100.0-row[1]*100.0)
                     prev = row[1]
-            print(diffs, np.mean(diffs))
+            #print(diffs, np.mean(diffs))
 
         max_pi = max(x)
         if p > 0:
             # fit a logistic curve to this
             y = [length for (pi, length) in data if not np.isnan(length) and not np.isinf(length)]
 
-            popt, pcov = curve_fit(curve, np.array(x), np.array(y), bounds=(0., [1., 2., 200.]))
+            popt, pcov = curve_fit(curve, np.array(x), np.array(y), bounds=(0., [1., 2., 200.]), maxfev=100)
             ##print("infection probability: {0}\tcurve_fit: {1}".format(p, popt))
             y = curve(x, *popt)
 
@@ -228,11 +228,11 @@ def plot_si_prestige_size(cache_dirs):
     ax.set_xlim(0, max_pi)
     #ax.set_title(title, y=1.05, fontsize=16)
     ax.tick_params(labelsize=12)
-    ax.set_xlabel(r'University Prestige ($\pi$)', fontsize=plot_utils.LABEL_SIZE)
-    ax.set_ylabel(r'Epidemic Size', fontsize=plot_utils.LABEL_SIZE)
+    ax.set_xlabel(r'University Prestige, $\pi$', fontsize=plot_utils.LABEL_SIZE)
+    ax.set_ylabel(r'Epidemic Size, $\frac{S}{N}$', fontsize=plot_utils.LABEL_SIZE)
     plot_utils.finalize(ax)
     plt.ylim(0, 1)
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=plot_utils.LEGEND_SIZE, title=r'$p$', frameon=False, scatterpoints=1)
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=plot_utils.LEGEND_SIZE, title='Infection\nProbability, $p$', frameon=False, scatterpoints=1)
     #plt.tight_layout()
     plt.savefig('results/test/size-results-of-ALL-SI.eps', bbox_inches='tight', format='eps', dpi=1000)
 
@@ -288,7 +288,7 @@ def plot_si_prestige_length(cache_dirs, ylim=(0,5)):
         # ax.plot(interval, interval*regr.coef_[0] + regr.intercept_, color=c)
 
         # fit an moving average/ LOWESS / polynomial curve to this
-        print("infection probability: {0}".format(p))
+        #print("infection probability: {0}".format(p))
         # window_size = 20
         # x, y = zip(*sorted((xVal, np.mean([yVal for j, (a, yVal) in enumerate(zip(x, y)) if (i >= j - window_size and i <= j + window_size)])) for i, xVal in enumerate(x)))
         lowess = sm.nonparametric.lowess
@@ -302,12 +302,12 @@ def plot_si_prestige_length(cache_dirs, ylim=(0,5)):
     ax.set_xlim(0, max_pi)
     #ax.set_title(title, y=1.05, fontsize=16)
     ax.tick_params(labelsize=12)
-    ax.set_xlabel(r'University Prestige ($\pi$)', fontsize=plot_utils.LABEL_SIZE)
-    ax.set_ylabel(r'Normalized Epidemic Length', fontsize=plot_utils.LABEL_SIZE)
+    ax.set_xlabel(r'University Prestige, $\pi$', fontsize=plot_utils.LABEL_SIZE)
+    ax.set_ylabel(r'Normalized Epidemic Length, $\frac{L}{\mathfrak{l}}$', fontsize=plot_utils.LABEL_SIZE)
     plot_utils.finalize(ax)
 
     plt.ylim(ylim)
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=plot_utils.LEGEND_SIZE, title=r'$p$', frameon=False, scatterpoints=1)
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=plot_utils.LEGEND_SIZE, title='Infection\nProbability, $p$', frameon=False, scatterpoints=1)
     plt.savefig('results/test/length-results-of-ALL-SI.eps', bbox_inches='tight', format='eps', dpi=1000)
 
 def plot_sis_or_sir_prestige_size(cache_dirs, epidemic_type, ylim=(0,1)):
@@ -365,8 +365,8 @@ def plot_sis_or_sir_prestige_size(cache_dirs, epidemic_type, ylim=(0,1)):
         #ax.set_title(title, y=1.05, fontsize=16)
         ax.tick_params(labelsize=12)
         if i == 0:
-            ax.set_xlabel(r'University Prestige ($\pi$)', fontsize=plot_utils.LABEL_SIZE)
-            ax.set_ylabel(r'Epidemic Size', fontsize=plot_utils.LABEL_SIZE)
+            ax.set_xlabel(r'University Prestige, $\pi$', fontsize=plot_utils.LABEL_SIZE)
+            ax.set_ylabel(r'Epidemic Size, $S$', fontsize=plot_utils.LABEL_SIZE)
         plot_utils.finalize(ax)
 
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=plot_utils.LEGEND_SIZE, title=r'$p/r$', scatterpoints=1, frameon=False)
@@ -428,8 +428,8 @@ def plot_sis_or_sir_prestige_length(cache_dirs, epidemic_type, ylim=(0,10)):
         #ax.set_title(title, y=1.05, fontsize=16)
         ax.tick_params(labelsize=12)
         if i == 0:
-            ax.set_xlabel(r'University Prestige ($\pi$)', fontsize=plot_utils.LABEL_SIZE)
-            ax.set_ylabel(r'Normalized Epidemic Length', fontsize=plot_utils.LABEL_SIZE)
+            ax.set_xlabel(r'University Prestige, $\pi$', fontsize=plot_utils.LABEL_SIZE)
+            ax.set_ylabel(r'Normalized Epidemic Length, $L$', fontsize=plot_utils.LABEL_SIZE)
         plot_utils.finalize(ax)
 
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=plot_utils.LEGEND_SIZE, title=r'$p/r$', scatterpoints=1, frameon=False)
@@ -484,16 +484,16 @@ def plot_random_hop_size(cache_dirs, epidemic_type, ylim=(0, 1)):
     ax.set_xlim(0, max_pi)
     #ax.set_title(title, y=1.05, fontsize=16)
 
-    ax.set_xlabel(r'University Prestige ($\pi$)', fontsize=plot_utils.LABEL_SIZE)
-    ax.set_ylabel(r'Epidemic Size', fontsize=plot_utils.LABEL_SIZE)
+    ax.set_xlabel(r'University Prestige, $\pi$', fontsize=plot_utils.LABEL_SIZE)
+    ax.set_ylabel(r'Epidemic Size, $\frac{S}{N}$', fontsize=plot_utils.LABEL_SIZE)
     plot_utils.finalize(ax)
         
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=plot_utils.LEGEND_SIZE, title=r"$j$", scatterpoints=1, frameon=False)
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=plot_utils.LEGEND_SIZE, title="Jump\nProbability, $j$", scatterpoints=1, frameon=False)
     plt.ylim(ylim)
     plt.savefig('results/test/size-results-of-ALL-{}-random-hops.eps'.format(epidemic_type), bbox_inches='tight', format='eps', dpi=1000)
 
 # epidemic size versus infection probability for all institutions
-def plot_size_infection_probability(cache_dirs, threshold=0.00, bins=range(0, 100, 10), average=False):
+def plot_size_infection_probability(cache_dirs, threshold=0.00, bins=range(0, 100, 10)):
     fig, ax = plt.subplots(1, 1, figsize=(6.0, 4.0), sharey=True)
 
     (title, cache_dir) = cache_dirs
@@ -518,9 +518,17 @@ def plot_size_infection_probability(cache_dirs, threshold=0.00, bins=range(0, 10
     for pi, data in results_size.copy().items():
         trend = [size for _, size in data]
         if max(trend) <= threshold:
+            print "HERE"
             del results_size[pi]
         else:
             results_size[pi] = sorted(data, key=lambda x: x[0])
+
+    # with open("infection_prob_vs_epidemic_size.csv", 'w') as csvfile:
+    #     writer = csv.DictWriter(csvfile, fieldnames=["prestige", "infection_prob", "size"])
+    #     writer.writeheader()
+    #     for pi in sorted(results_size.keys()):
+    #         for row in results_size[pi]:
+    #             writer.writerow({"prestige": pi, "infection_prob": row[0], "size": row[1]})
 
     # bin the remaining data
     if bins != None:
@@ -532,50 +540,43 @@ def plot_size_infection_probability(cache_dirs, threshold=0.00, bins=range(0, 10
             for pi in results_size.keys():
                 if left_endpoint < pi <= bin_edge:
                     bin_values.extend(results_size[pi])
+                    #break
             
             bin_means[(i+1)] = average_across_infection_probability(bin_values)
             left_endpoint = bin_edge
         results_size = bin_means
 
-    # find average trend over all prestige levels
-    if average:
-        averages = defaultdict(list)
-        for pi, data in results_size.items():
-            for x, y in data:
-                averages[x].append(y)
-
-        results_size = defaultdict(list)
-        for p, sizes in averages.items():
-            results_size[1].append((p, np.average(sizes)))
-
     length_of_results = len(results_size.keys())
 
     colors = iter(cm.rainbow(np.linspace(0, 1, length_of_results)))
+    rows = []
     for pi, data in sorted(results_size.items(), key=lambda x: x[0]):
+        for p, s in data:
+            rows.append({"decile": pi*10, "infection_prob": p, "size": s})
         data = sorted(data, key=lambda x: x[0])
         c = next(colors)
-        print("Data: {0}".format(data))
+        # if pi == 1 or pi == 5:
+        #     print("\nPi: {0}".format(pi*10))
+        #     for each in data:
+        #         print(each)
         ax.scatter(*zip(*data), color=c, label='{0}'.format(int(pi*10)), edgecolor='w', clip_on=False, zorder=1, s=28)
 
-
         # fit a logistic curve to this
-        if not average:
-            x = [p for (p, size) in data if not np.isnan(size) and not np.isinf(size)]
-            y = [size for (p, size) in data if not np.isnan(size) and not np.isinf(size)]
-
-            popt, pcov = curve_fit(curve, np.array(x), np.array(y), bounds=([0., -150., -5.], [1., 0., 5.]))
-            y = curve(x, *popt)
-            print("prestige: {0}\tcurve_fit: {1}".format(pi, popt))
-            ax.plot(x, y, color=c)
-
+        x = [p for (p, size) in data if not np.isnan(size) and not np.isinf(size)]
+        y = [size for (p, size) in data if not np.isnan(size) and not np.isinf(size)]
+        popt, pcov = curve_fit(curve, np.array(x), np.array(y), bounds=([0., -150., -5.], [1., 0., 5.]))
+        x_fine = np.arange(0.0, 1.01, 0.01)
+        y = curve(x_fine, *popt)
+        # print("prestige: {0}\tcurve_fit: {1}".format(pi, popt))
+        ax.plot(x_fine, y, color=c)
 
     #ax.set_title(title, y=1.05, fontsize=16)
     ax.tick_params(labelsize=12)
 
     plt.ylim(0, 1.)
     plt.xlim(0, 1.)
-    ax.set_xlabel(r'Infection Probability', fontsize=plot_utils.LABEL_SIZE)
-    ax.set_ylabel(r'Epidemic Size', fontsize=plot_utils.LABEL_SIZE)
+    ax.set_xlabel(r'Infection Probability, $p$', fontsize=plot_utils.LABEL_SIZE)
+    ax.set_ylabel(r'Epidemic Size, $\frac{S}{N}$', fontsize=plot_utils.LABEL_SIZE)
     plot_utils.finalize(ax)
 
     if bins != None:
@@ -637,10 +638,9 @@ def plot_size_infection_probability(cache_dirs, threshold=0.00, bins=range(0, 10
 #    plt.clf()
 
 def main():
+    plot_centrality()
 
-    #plot_centrality()
-
-    #plot_si_prestige_size(all_departments_SI[1])
+    plot_si_prestige_size(all_departments_SI[1])
     plot_si_prestige_length(all_departments_SI[1], ylim=(0,5))
 
     #plot_sis_or_sir_prestige_length(all_departments_SIR, "SIR", ylim=(0,2.5))
@@ -651,8 +651,8 @@ def main():
 
     #plot_random_hop_size(all_departments_SIS_random_jump, "SIS", ylim=(0,0.15))
     #plot_random_hop_size(all_departments_SIR_random_jump, "SIR", ylim=(0,0.5))
-    #plot_random_hop_size(all_departments_SI_random_jump[1], "SI", ylim=(0,1))
-    #plot_size_infection_probability(all_departments_SI[1])
+    plot_random_hop_size(all_departments_SI_random_jump[1], "SI", ylim=(0,1))
+    plot_size_infection_probability(all_departments_SI[1])
     
     #for (title, cache_dir) in all_departments_SI_random_jump:
     #    print("title: {0}\tnumber of SI trials: {1}".format(title, n_trials_of_dir(cache_dir)))

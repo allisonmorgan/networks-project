@@ -20,7 +20,7 @@ def main():
 
     # Scale adjacency matrix by a vertex's outdegree.
     # Edges i -> j are from row_i -> col_j
-    groups = np.linspace(0, 100, 11, dtype=int)
+    groups = np.linspace(0, 100, 11)
     grouped_by_row = []
     for i, row in enumerate(adj):
       in_edges = [] 
@@ -55,12 +55,13 @@ def main():
     ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
     ax.yaxis.set_major_locator(ticker.MultipleLocator(1))
 
-    ax.set_xticklabels(groups, fontsize=12)
-    ax.set_yticklabels(groups, fontsize=12)
+    labels = ['%.0f' % group for group in groups]
+    ax.set_xticklabels(labels, fontsize=12)
+    ax.set_yticklabels(labels, fontsize=12)
 
     if l == 0:
-      ax.set_ylabel(r"Prestige of PhD Institution ($\pi$)", fontsize=16)
-      ax.set_xlabel(r"Prestige of Hiring Institution ($\pi$)", fontsize=16)
+      ax.set_ylabel(r"Prestige of PhD Institution, $\pi$", fontsize=16)
+      ax.set_xlabel(r"Prestige of Hiring Institution, $\pi$", fontsize=16)
       #ax.xaxis.set_label_coords(0.5, -.10)
 
     #ax.set_title(title, y=1.15, fontsize=16)
