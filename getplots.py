@@ -232,7 +232,7 @@ def plot_si_prestige_size(cache_dirs):
     ax.set_ylabel(r'Epidemic Size, $\frac{S}{N}$', fontsize=plot_utils.LABEL_SIZE)
     plot_utils.finalize(ax)
     plt.ylim(0, 1)
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=plot_utils.LEGEND_SIZE, title='Infection\nProbability, $p$', frameon=False, scatterpoints=1)
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=plot_utils.LEGEND_SIZE, title='Transmission\nProbability, $p$', frameon=False, scatterpoints=1)
     #plt.tight_layout()
     plt.savefig('results/test/size-results-of-ALL-SI.eps', bbox_inches='tight', format='eps', dpi=1000)
 
@@ -307,7 +307,7 @@ def plot_si_prestige_length(cache_dirs, ylim=(0,5)):
     plot_utils.finalize(ax)
 
     plt.ylim(ylim)
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=plot_utils.LEGEND_SIZE, title='Infection\nProbability, $p$', frameon=False, scatterpoints=1)
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=plot_utils.LEGEND_SIZE, title='Transmission\nProbability, $p$', frameon=False, scatterpoints=1)
     plt.savefig('results/test/length-results-of-ALL-SI.eps', bbox_inches='tight', format='eps', dpi=1000)
 
 def plot_sis_or_sir_prestige_size(cache_dirs, epidemic_type, ylim=(0,1)):
@@ -494,7 +494,7 @@ def plot_random_hop_size(cache_dirs, epidemic_type, ylim=(0, 1)):
 
 # epidemic size versus infection probability for all institutions
 def plot_size_infection_probability(cache_dirs, threshold=0.00, bins=range(0, 100, 10)):
-    fig, ax = plt.subplots(1, 1, figsize=(6.0, 4.0), sharey=True)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12.0, 4.0), sharey=True)
 
     (title, cache_dir) = cache_dirs
     print("title: {0}".format(title))
@@ -553,6 +553,16 @@ def plot_size_infection_probability(cache_dirs, threshold=0.00, bins=range(0, 10
         data = sorted(data, key=lambda x: x[0])
         c = next(colors)
 
+        ax1.scatter(*zip(*data), color=c, label='{0}'.format(int(pi*10)), edgecolor='w', clip_on=False, zorder=1, s=28)
+
+        # fit a logistic curve to this
+        x = [p for (p, size) in data if not np.isnan(size) and not np.isinf(size)]
+        y = [size for (p, size) in data if not np.isnan(size) and not np.isinf(size)]
+        popt, pcov = curve_fit(curve, np.array(x), np.array(y), bounds=([0., -150., -5.], [1., 0., 5.]))
+        x_fine = np.arange(0.0, 1.01, 0.01)
+        y = curve(x_fine, *popt)
+        ax1.plot(x_fine, y, color=c)
+
         r = -2.7; k = 0.91;
         def scale_x(x, d): return (1.0*x) / (-1.0*math.log(1.0-d))
         x = []; y = [];
@@ -563,37 +573,34 @@ def plot_size_infection_probability(cache_dirs, threshold=0.00, bins=range(0, 10
                 y.append(y_i)
 
         if pi in [1]:
-            ax.scatter(x, y, color=c, label='{0}st Decile'.format(int(pi)), edgecolor='w', clip_on=False, zorder=1, s=28)
+            ax2.scatter(x, y, color=c, label='{0}st Decile'.format(int(pi)), edgecolor='w', clip_on=False, zorder=1, s=28)
         elif pi in [2]:
-            ax.scatter(x, y, color=c, label='{0}nd Decile'.format(int(pi)), edgecolor='w', clip_on=False, zorder=1, s=28)
+            ax2.scatter(x, y, color=c, label='{0}nd Decile'.format(int(pi)), edgecolor='w', clip_on=False, zorder=1, s=28)
         elif pi in [3]:
-            ax.scatter(x, y, color=c, label='{0}rd Decile'.format(int(pi)), edgecolor='w', clip_on=False, zorder=1, s=28)
+            ax2.scatter(x, y, color=c, label='{0}rd Decile'.format(int(pi)), edgecolor='w', clip_on=False, zorder=1, s=28)
         elif pi in [4, 5, 6, 7, 8, 9]:
-            ax.scatter(x, y, color=c, label='{0}th Decile'.format(int(pi)), edgecolor='w', clip_on=False, zorder=1, s=28)
-
-        # fit a logistic curve to this
-        # x = [p for (p, size) in data if not np.isnan(size) and not np.isinf(size)]
-        # y = [size for (p, size) in data if not np.isnan(size) and not np.isinf(size)]
-        # popt, pcov = curve_fit(curve, np.array(x), np.array(y), bounds=([0., -150., -5.], [1., 0., 5.]))
-        # x_fine = np.arange(0.0, 1.01, 0.01)
-        # y = curve(x_fine, *popt)
-        # # print("prestige: {0}\tcurve_fit: {1}".format(pi, popt))
-        # ax.plot(x_fine, y, color=c)
+            ax2.scatter(x, y, color=c, label='{0}th Decile'.format(int(pi)), edgecolor='w', clip_on=False, zorder=1, s=28)
 
     # fit a curve to the whole thing!
     def scale_y(scaled_x): return (1.0 / (1.0 + math.exp(r*(k + math.log(scaled_x)))))
     x_total = np.arange(0.01, 10.01, 0.01)
-    ax.plot(x_total, [scale_y(i) for i in x_total], color='black', label="Universal")
+    ax2.plot(x_total, [scale_y(i) for i in x_total], color='black', label="Universal")
 
     #ax.set_title(title, y=1.05, fontsize=16)
-    ax.tick_params(labelsize=12)
-
-    plt.ylim(0, 1.)
-    ax.set_xscale("log")
-    plt.xlim(0.04, 10)
-    ax.set_xlabel(r'Effective Infection Probability, $p^{*}$', fontsize=plot_utils.LABEL_SIZE)
-    ax.set_ylabel(r'Epidemic Size, $\frac{S}{N}$', fontsize=plot_utils.LABEL_SIZE)
-    plot_utils.finalize(ax)
+    ax1.tick_params(labelsize=12)
+    ax2.tick_params(labelsize=12)
+    ax1.set_ylim(0, 1.)
+    ax2.set_ylim(0, 1.)
+    ax2.set_xscale("log")
+    ax2.set_xlim(0.04, 10)
+    ax1.set_xlim(0, 1)
+    
+    ax1.set_xlabel(r'Transmission Probability, $p$', fontsize=plot_utils.LABEL_SIZE)
+    ax2.set_xlabel(r'Effective Transmission Probability, $p^{*}$', fontsize=plot_utils.LABEL_SIZE)
+    ax1.set_ylabel(r'Epidemic Size, $\frac{S}{N}$', fontsize=plot_utils.LABEL_SIZE)
+    
+    plot_utils.finalize(ax1)
+    plot_utils.finalize(ax2)
 
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=plot_utils.LEGEND_SIZE, scatterpoints=1, frameon=False)
     plt.savefig('results/infectious-size-results-of-ALL-SI.eps', bbox_inches='tight', format='eps', dpi=1000)
